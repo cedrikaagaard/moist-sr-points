@@ -9,7 +9,7 @@
 //                and SRs placed before an item was available). Do not
 //                reimplement this logic here; just read the view.
 //   Items.item_id happens to be the Wowhead item id, so item links/icons work.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { createRequire } from "node:module";
@@ -22,14 +22,62 @@ const OUT_PATH = join(root, "public", "data", "data.json");
 
 const RAID_ORDER = ["MC", "BWL", "AQ40", "Naxx"];
 
+// Fail with a friendly, human message instead of a raw stack trace. The
+// README's Troubleshooting section refers to these exact phrasings.
+function die(message) {
+  console.error(`\n❌ ${message}\n`);
+  process.exit(1);
+}
+
+if (!existsSync(DB_PATH)) {
+  die(
+    `Couldn't find moistdb.sqlite.\n` +
+      `   Put your database in the project root (next to package.json),\n` +
+      `   named exactly "moistdb.sqlite" (all lowercase).\n` +
+      `   Looked here: ${DB_PATH}`
+  );
+}
+
 const SQL = await initSqlJs({
   locateFile: () => require.resolve("sql.js/dist/sql-wasm.wasm"),
 });
-const db = new SQL.Database(readFileSync(DB_PATH));
 
-// Run a query and return an array of plain row objects.
+let db;
+try {
+  db = new SQL.Database(readFileSync(DB_PATH));
+} catch {
+  die(
+    `moistdb.sqlite doesn't look like a valid SQLite database.\n` +
+      `   It may be corrupted or not fully copied. Confirm it opens in\n` +
+      `   https://beta.sqliteviewer.app and copy it over again.`
+  );
+}
+
+// Run a query and return an array of plain row objects. Missing views/tables
+// (a different or older database) get a clear message instead of a stack trace.
 function query(sql) {
-  const res = db.exec(sql);
+  let res;
+  try {
+    res = db.exec(sql);
+  } catch (err) {
+    if (/not a database|file is encrypted|malformed/i.test(err.message)) {
+      die(
+        `moistdb.sqlite doesn't look like a valid SQLite database.\n` +
+          `   It may be corrupted or not fully copied. Confirm it opens in\n` +
+          `   https://beta.sqliteviewer.app and copy it over again.`
+      );
+    }
+    if (/no such (table|view|column)/i.test(err.message)) {
+      die(
+        `The database is missing the required views (v_SRPoints / v_SRData).\n` +
+          `   The site reads those for the points and history. Make sure the\n` +
+          `   database you dropped in is the one your normal tool produces —\n` +
+          `   it has these views built in.\n` +
+          `   (SQLite said: ${err.message})`
+      );
+    }
+    die(`Database query failed: ${err.message}`);
+  }
   if (!res.length) return [];
   const { columns, values } = res[0];
   return values.map((row) => Object.fromEntries(columns.map((c, i) => [c, row[i]])));

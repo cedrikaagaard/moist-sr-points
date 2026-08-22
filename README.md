@@ -120,6 +120,72 @@ rebuilds automatically in about a minute. This is the "no local tools" path.
 
 ---
 
+## Troubleshooting — if something isn't working
+
+Don't panic — almost everything here is one of a handful of small things. Work
+down the list; the fix is usually one line.
+
+> 💡 **How to read an error:** the *last* few lines of the red output usually say
+> what's actually wrong (the rest is just where it happened). For problems in the
+> browser, press **F12 → Console** to see the real error.
+
+**`node` / `npm` is not recognized / "command not found"**
+Node isn't installed, or the terminal was open before you installed it. Install
+[Node.js](https://nodejs.org) (the "LTS" version), then **close and reopen** your
+terminal and check with `node -v` (should print `v20.x` or higher). On Windows,
+use PowerShell or Command Prompt.
+
+**"Could not read package.json" / "ENOENT ... package.json"**
+You're in the wrong folder. `cd` into the project folder — the one that contains
+`package.json` and `moistdb.sqlite` — and run the command again.
+
+**`npm install` fails**
+Usually the internet connection or a company network/VPN blocking the download.
+Try again on a normal connection. If it half-finished, delete the `node_modules`
+folder and run `npm install` once more.
+
+**Build fails: "Couldn't find moistdb.sqlite"**
+The database isn't where the script looks. Put your file in the **project root**
+(next to `package.json`), named exactly `moistdb.sqlite` — all lowercase.
+
+**Build fails: "doesn't look like a valid SQLite database"**
+The file is corrupted, wasn't fully copied, or isn't actually a database. Confirm
+it opens in <https://beta.sqliteviewer.app> (the tool you already use), then copy
+it over again.
+
+**Build fails: "database is missing the required views (v_SRPoints / v_SRData)"**
+The site reads those two views for the points and history. If your database
+doesn't have them, it was likely built by an older/different process. Make sure
+the database you drop in is the one your normal tool produces (it has these
+views built in).
+
+**The site opens but is blank, or stuck on "Summoning data…"**
+Almost always because the page was opened by **double-clicking `index.html`**
+(a `file://` page isn't allowed to load the data). Serve it instead:
+`npm run preview`, or `npx serve dist`, or upload the `dist/` folder to a host.
+(Press F12 → Console to confirm — you'll see a blocked/failed request.)
+
+**I updated the database but the site shows old numbers**
+Rebuild (`npm run build`) and re-upload the new `dist/` folder, then hard-refresh
+the page (**Ctrl+Shift+R**, or Cmd+Shift+R on Mac) to bypass the cache.
+
+**Item icons or hover tooltips don't show**
+Those come from Wowhead's script, which needs internet and can be blocked by ad
+blockers. It's cosmetic — item names and everything else still work.
+
+**Leeroy shows up too much / I want him gone**
+Open `src/components/Leeroy.jsx` and set `ENABLED = false` (or lower
+`CHARGE_ODDS`). See [Easter eggs](#easter-eggs-) below.
+
+**"Port already in use" when running `npm run dev` / `preview`**
+Something's already using that port. Stop the other terminal that's running it,
+or just let Vite pick the next free port (it prints the link to open).
+
+Still stuck? Copy the last ~10 lines of the error (or a screenshot of the F12
+console) and send them to **Cedrik/Drikkle**.
+
+---
+
 ## How it works (under the hood)
 
 - **`scripts/generate.mjs`** reads `moistdb.sqlite` and writes
