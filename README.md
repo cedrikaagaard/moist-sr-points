@@ -23,9 +23,40 @@ moistdb.sqlite  ──▶  npm run build  ──▶  dist/  ──▶  host it a
                                           website)     Pages / any server)
 ```
 
-The typical flow: **Cedrik** maintains this generator repo; **Yulefuel** clones
+The typical flow: **Cedrik/Drikkle** maintains this generator repo; **Yulefuel** clones
 it, drops in the real database, builds, and publishes the result to his own
 host. You never have to touch the code to update the data.
+
+---
+
+## See it running locally (start here)
+
+Fastest way to look at the site on your own machine — great for a first look or
+demoing it to someone. Requires [Node.js](https://nodejs.org) 20+ (`node -v` to
+check).
+
+```bash
+npm install     # first time only
+npm run dev     # then open the link it prints, e.g. http://localhost:5173
+```
+
+That starts a live preview (it even reloads when you change something) using
+whatever `moistdb.sqlite` is in the folder. Press `Ctrl+C` to stop.
+
+Want to test the actual production build (the exact files you'd host)?
+
+```bash
+npm run build   # creates the dist/ folder
+npm run preview # serves dist/ at http://localhost:4173
+```
+
+> ⚠️ You can't just double-click `dist/index.html` — a page opened from a
+> `file://` path isn't allowed to load the data file. Use `npm run preview`
+> (or any static server, e.g. `npx serve dist`).
+
+> 🔗 **Want to share a link without the other person installing anything?** Run
+> `npm run build`, then drag the `dist/` folder onto <https://app.netlify.com/drop>
+> — you'll get a public URL in seconds.
 
 ---
 
