@@ -12,7 +12,7 @@ export function useHashRoute() {
 
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   return {
-    view: parts[0] || "overview",
+    view: parts[0] || "points", // Points is the home page
     param: parts[1] ? decodeURIComponent(parts[1]) : null,
   };
 }

@@ -8,10 +8,10 @@ import History from "./views/History.jsx";
 import Leeroy from "./components/Leeroy.jsx";
 
 const NAV = [
-  { view: "overview", label: "Overview" },
   { view: "points", label: "Points" },
   { view: "players", label: "Raiders" },
   { view: "history", label: "SR History" },
+  { view: "stats", label: "Statistics" },
 ];
 
 export default function App() {
@@ -32,7 +32,7 @@ export default function App() {
     <div className="app">
       <Leeroy />
       <header className="topbar">
-        <a className="brand" href={href("overview")}>
+        <a className="brand" href="#/">
           <img src={`${import.meta.env.BASE_URL}logo.webp`} alt="Moist" className="brand-logo" />
           <div className="brand-text">
             <span className="brand-name">Moist</span>
@@ -56,7 +56,7 @@ export default function App() {
       <main className="content">
         {error && <div className="empty error">Couldn’t load data: {error}</div>}
         {!data && !error && <div className="loading">Summoning data…</div>}
-        {data && view === "overview" && <Overview data={data} />}
+        {data && view === "stats" && <Overview data={data} />}
         {data && view === "points" && <Points data={data} raid={param} />}
         {data && view === "players" && <Players data={data} name={param} />}
         {data && view === "history" && <History data={data} />}

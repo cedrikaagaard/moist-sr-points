@@ -4,10 +4,14 @@ import { WowheadLink, RaidBadge, Rank, PlayerLink } from "../components/common.j
 import { navigate } from "../router.js";
 
 export default function Points({ data, raid }) {
-  const activeRaid = RAID_ORDER.includes(raid) ? raid : "MC";
+  // Default view is "all" raids — most people just want to find their own item.
+  const activeRaid = RAID_ORDER.includes(raid) ? raid : "all";
   const [query, setQuery] = useState("");
   const meta = RAID_META[activeRaid];
-  const items = data.pointsByRaid[activeRaid] || [];
+  const items =
+    activeRaid === "all"
+      ? RAID_ORDER.flatMap((r) => data.pointsByRaid[r] || [])
+      : data.pointsByRaid[activeRaid] || [];
 
   const q = query.trim().toLowerCase();
   const filtered = useMemo(() => {
@@ -21,37 +25,55 @@ export default function Points({ data, raid }) {
       .filter((it) => it.entries.length > 0);
   }, [items, q]);
 
+  const tabs = ["all", ...RAID_ORDER];
+
   return (
     <div className="view">
       <div className="view-head">
         <div>
           <h1>Points by item</h1>
           <p className="muted">
-            Each SR here is worth <strong>{meta.srValue} points</strong>. Winner = highest{" "}
-            <em>roll + points</em>, but only among raiders who reserved the item.
+            {activeRaid === "all" ? (
+              <>
+                Each soft-reserve is worth <strong>10 points</strong> — except{" "}
+                <strong>Naxxramas</strong>, where it's <strong>5</strong>.
+              </>
+            ) : (
+              <>
+                Each SR in {meta.name} is worth <strong>{meta.srValue} points</strong>.
+              </>
+            )}{" "}
+            Winner = highest <em>roll + points</em>, among raiders who reserved the item.
           </p>
         </div>
         <input
           className="search"
-          placeholder="Filter items or players…"
+          placeholder="Search your name or an item…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
       <div className="segmented">
-        {RAID_ORDER.map((r) => (
-          <button
-            key={r}
-            className={`segmented-btn${r === activeRaid ? " active" : ""}`}
-            style={{ "--seg-color": RAID_META[r].color }}
-            onClick={() => navigate("points", r)}
-          >
-            <span className="seg-dot" style={{ background: RAID_META[r].color }} />
-            {RAID_META[r].short}
-            <span className="seg-count">{(data.pointsByRaid[r] || []).length}</span>
-          </button>
-        ))}
+        {tabs.map((r) => {
+          const isAll = r === "all";
+          const color = isAll ? "var(--gold)" : RAID_META[r].color;
+          const count = isAll
+            ? RAID_ORDER.reduce((n, x) => n + (data.pointsByRaid[x] || []).length, 0)
+            : (data.pointsByRaid[r] || []).length;
+          return (
+            <button
+              key={r}
+              className={`segmented-btn${r === activeRaid ? " active" : ""}`}
+              style={{ "--seg-color": color }}
+              onClick={() => navigate("points", r)}
+            >
+              <span className="seg-dot" style={{ background: color }} />
+              {isAll ? "All" : RAID_META[r].short}
+              <span className="seg-count">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && <div className="empty">No items or players match “{query}”.</div>}
