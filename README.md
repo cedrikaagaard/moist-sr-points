@@ -122,12 +122,11 @@ rebuilds automatically in about a minute. This is the "no local tools" path.
 
 ## Troubleshooting — if something isn't working
 
-Don't panic — almost everything here is one of a handful of small things. Work
-down the list; the fix is usually one line.
+These are the common snags and their fixes. The build script also prints a
+plain-language message for most of them.
 
-> 💡 **How to read an error:** the *last* few lines of the red output usually say
-> what's actually wrong (the rest is just where it happened). For problems in the
-> browser, press **F12 → Console** to see the real error.
+> 💡 The *last* lines of the red output are the ones that matter. For anything
+> in the browser, **F12 → Console** shows the real error.
 
 **`node` / `npm` is not recognized / "command not found"**
 Node isn't installed, or the terminal was open before you installed it. Install
