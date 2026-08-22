@@ -8,7 +8,7 @@ free — Netlify, GitHub Pages, your own web server, whatever.
 There is no backend, no database server, and no paid services. You run one
 command to generate the site, then you own the output.
 
-![Overview](docs/overview.png)
+![The Points page — every tracked item, searchable across all raids](docs/home.png)
 
 ---
 
@@ -153,14 +153,17 @@ dist/                 build output (created by `npm run build`) — host this
 
 ## The site's pages
 
-- **Overview** — guild stats, SRs by raid, weekly activity, most-contested
-  items, and point leaders.
-- **Points** — per-raid, grouped by item, ranked with point bars. Filter by
-  item or player. Items link to Wowhead.
+- **Points** (the home page) — every tracked item, grouped and ranked with
+  point bars. Defaults to **all raids** and is searchable, so a raider can just
+  type their name to see their items; the raid buttons (All / MC / BWL / AQ40 /
+  Naxx) filter down. Items link to Wowhead. Each SR is worth 10 points, except
+  Naxxramas where it's 5.
 - **Raiders** — searchable directory; each raider has a profile with points by
   item and their full personal SR history (a quick "just show me my stuff").
 - **SR History** — the complete log, sortable by any column (including raider
   name) and filterable by raider/item and raid.
+- **Statistics** — the fun overview: guild stats, SRs by raid, weekly activity,
+  most-contested items, and point leaders.
 
 ---
 
