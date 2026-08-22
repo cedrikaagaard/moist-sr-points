@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output — produced by `npm run build`, host this but don't commit it
+dist/
+
+# Generated from moistdb.sqlite by scripts/generate.mjs — rebuilt on every
+# build/dev, so no need to track it (avoids noisy timestamp diffs)
+public/data/data.json
+
+# Logs & OS cruft
+*.log
+.DS_Store
