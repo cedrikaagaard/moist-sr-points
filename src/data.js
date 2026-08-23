@@ -1,5 +1,5 @@
-// Data loading + derived selectors. The raw shape comes straight from
-// scraper/scrape.mjs -> public/data/data.json.
+// Data loading + derived selectors. The raw shape comes from the SQLite
+// database, read in the browser — see src/lib/loadDb.js + src/lib/shapeData.js.
 
 export const RAID_ORDER = ["MC", "BWL", "AQ40", "Naxx"];
 
@@ -10,16 +10,18 @@ export const RAID_META = {
   Naxx: { name: "Naxxramas", short: "Naxx", srValue: 5, color: "var(--raid-naxx)" },
 };
 
+import { loadFromDb } from "./lib/loadDb.js";
+
 export async function loadData() {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/data.json`);
-  if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
-  const raw = await res.json();
+  // Reads the SQLite database live, in the browser (sql.js). The source is
+  // chosen in src/lib/loadDb.js (override → local file → remote).
+  const raw = await loadFromDb();
   return buildIndex(raw);
 }
 
-// Turn the raw JSON into fast lookups the UI leans on.
+// Turn the raw data into fast lookups the UI leans on.
 function buildIndex(raw) {
-  const { pointsByRaid, srHistory, updated } = raw;
+  const { pointsByRaid, srHistory, updated, dataThrough, source } = raw;
 
   // Flatten point entries: one row per (item, character).
   const pointRows = [];
@@ -105,6 +107,8 @@ function buildIndex(raw) {
 
   return {
     updated,
+    dataThrough,
+    source,
     pointsByRaid,
     srHistory,
     pointRows,

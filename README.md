@@ -1,217 +1,171 @@
 # Moist — SR Points
 
 A modern, WoW-flavoured website for the guild's accumulative soft-reserve (SR)
-points system. It reads the guild's SQLite database (`moistdb.sqlite`) and
-**builds into a plain folder of static files** that you can host anywhere for
-free — Netlify, GitHub Pages, your own web server, whatever.
+points system. It reads the guild's SQLite database **live, in the browser** —
+so once the site is hosted, **there's no build or deploy to update it.** When the
+database changes, the site follows.
 
-There is no backend, no database server, and no paid services. You run one
-command to generate the site, then you own the output.
+No backend, no database server, no paid services.
 
 ![The Points page — every tracked item, searchable across all raids](docs/home.png)
 
 ---
 
-## What this repo is
+## How it stays up to date (the important part)
 
-Think of this repo as a **site generator**. You give it a `moistdb.sqlite`, it
-gives you back a `dist/` folder = the finished website.
+The site loads the database straight from **Yulefuel's `moistdb` repo** over
+[jsDelivr](https://www.jsdelivr.com)'s free CDN, and runs it in the browser.
 
 ```
-moistdb.sqlite  ──▶  npm run build  ──▶  dist/  ──▶  host it anywhere
- (your database)     (one command)      (static     (Netlify / GitHub
-                                          website)     Pages / any server)
+Yule updates moistdb.sqlite  ─push→  github.com/yulefuel-moist/moistdb
+                                             │  (served via jsDelivr CDN)
+                                             ▼
+                       the live site reads it in the browser — no rebuild
 ```
 
-The typical flow: **Cedrik/Drikkle** maintains this generator repo; **Yulefuel** clones
-it, drops in the real database, builds, and publishes the result to his own
-host. You never have to touch the code to update the data.
+So **updating the data is just Yule's normal workflow** — update the database,
+push it to that repo. Nothing else. The site picks it up automatically.
+
+**Freshness:** jsDelivr caches the file for a while (up to ~12h). That's usually
+fine. To force the latest immediately, open this URL once (it tells the CDN to
+refresh):
+
+```
+https://purge.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite
+```
+
+Pointing at a different database is a one-line change — see
+[Configuration](#configuration).
 
 ---
 
-## See it running locally (start here)
+## Hosting the site (one-time, by whoever owns it)
 
-Fastest way to look at the site on your own machine — great for a first look or
-demoing it to someone. Requires [Node.js](https://nodejs.org) 20+ (`node -v` to
-check).
+Because the data loads at runtime, you only ever build/deploy the app itself —
+and only when the *code* changes, which is rare. Two ways:
+
+- **Netlify (recommended):** connect this repo (New site → import from Git).
+  `netlify.toml` is already set up. Done — it's live, and it keeps itself updated
+  from the database with no further action.
+- **Anything static:** run `npm run build` once and host the `dist/` folder
+  (Netlify drag-and-drop at <https://app.netlify.com/drop>, GitHub Pages, your
+  own server…). It uses relative paths, so it works at any domain or subpath.
+
+That's it. From then on, the data updates handle themselves.
+
+---
+
+## See it running locally
+
+Only needed to change the UI, or to try it on your machine. Requires
+[Node.js](https://nodejs.org) 20+ (`node -v` to check).
 
 ```bash
 npm install     # first time only
-npm run dev     # then open the link it prints, e.g. http://localhost:5173
+npm run dev     # open the link it prints, e.g. http://localhost:5173
 ```
 
-That starts a live preview (it even reloads when you change something) using
-whatever `moistdb.sqlite` is in the folder. Press `Ctrl+C` to stop.
-
-Want to test the actual production build (the exact files you'd host)?
+`npm run dev` copies the project's `moistdb.sqlite` into `public/` so it loads
+that local copy (you can work offline). Build/preview the production version:
 
 ```bash
-npm run build   # creates the dist/ folder
+npm run build   # builds to dist/
 npm run preview # serves dist/ at http://localhost:4173
 ```
 
-> ⚠️ You can't just double-click `dist/index.html` — a page opened from a
-> `file://` path isn't allowed to load the data file. Use `npm run preview`
-> (or any static server, e.g. `npx serve dist`).
-
-> 🔗 **Want to share a link without the other person installing anything?** Run
-> `npm run build`, then drag the `dist/` folder onto <https://app.netlify.com/drop>
-> — you'll get a public URL in seconds.
+Whichever database it ends up using is printed in the browser console
+(**F12 → Console**), e.g. `[Moist] database source: remote → …`.
 
 ---
 
-## Quick start (build the site from your database)
+## Configuration
 
-You need [Node.js](https://nodejs.org) 20 or newer installed (one-time). Check
-with `node -v`. Everything else is just running commands in this folder.
+Where the app reads the database from is decided in **`src/config.js`** /
+`src/lib/loadDb.js`, in this order:
 
-1. **Get the repo** — clone it, or download it as a ZIP and unzip:
-   ```bash
-   git clone <this-repo-url>
-   cd moist
-   ```
+1. **Override** — `?db=<url>` in the page URL, or a `VITE_DB_URL` set at build
+   time. Handy for testing: `yoursite.com/?db=https://.../other.sqlite`.
+2. **Local file** — a `moistdb.sqlite` served next to the app (this is what
+   `npm run dev` uses, and you can drop one next to a hosted copy to override the
+   remote). Skipped if it isn't a real SQLite file.
+3. **Remote (default)** — Yulefuel's repo via jsDelivr.
 
-2. **Drop in your database.** Put your `moistdb.sqlite` in the project root,
-   replacing the one that's there. (This is the same file you drag into
-   sqliteviewer.app.)
-
-3. **Install dependencies** — one time only:
-   ```bash
-   npm install
-   ```
-
-4. **Build the site:**
-   ```bash
-   npm run build
-   ```
-   This reads `moistdb.sqlite`, generates the data, and produces a **`dist/`
-   folder** containing the complete website.
-
-5. **Host the `dist/` folder** anywhere (see below). Done.
-
-To update later, just replace `moistdb.sqlite` and run `npm run build` again.
-
-> 💡 **Preview before publishing:** run `npm run dev` and open the link it
-> prints (http://localhost:5173). It live-reloads while you look around.
-
----
-
-## Hosting the `dist/` folder
-
-The build output is completely self-contained and uses relative paths, so it
-works at a root domain *or* a subpath. Pick whatever you like:
-
-- **Netlify (drag & drop):** go to <https://app.netlify.com/drop> and drag the
-  `dist/` folder onto the page. Instant free URL. To update, drag the new
-  `dist/` again.
-- **GitHub Pages:** push the contents of `dist/` to a repo (or a `gh-pages`
-  branch) and enable Pages. Works out of the box (routing is hash-based, so no
-  extra config needed).
-- **Your own web server:** copy `dist/` and serve it as static files. No Node,
-  no database, nothing to run on the server.
-
-### Optional: fully automatic rebuilds on Netlify
-
-If you'd rather not run the build yourself, connect **this repo** to Netlify
-(New site → import from Git). `netlify.toml` is already set up so Netlify runs
-the build for you. Then updating the site is just: replace `moistdb.sqlite` in
-the repo (you can even drag-drop it in the github.com web UI) and push — Netlify
-rebuilds automatically in about a minute. This is the "no local tools" path.
+To change the default source permanently, edit `REMOTE_DB_URL` in
+`src/config.js`. Any database works as long as it has the same shape (the
+`v_SRPoints` / `v_SRData` views and the `Items` / `Characters` / `SRData` /
+`SRPages` / `Raids` tables).
 
 ---
 
 ## Troubleshooting — if something isn't working
 
-These are the common snags and their fixes. The build script also prints a
-plain-language message for most of them.
+These are the common snags and their fixes.
 
-> 💡 The *last* lines of the red output are the ones that matter. For anything
-> in the browser, **F12 → Console** shows the real error.
+> 💡 For anything in the browser, open **F12 → Console** to see the real error.
 
-**`node` / `npm` is not recognized / "command not found"**
-Node isn't installed, or the terminal was open before you installed it. Install
-[Node.js](https://nodejs.org) (the "LTS" version), then **close and reopen** your
-terminal and check with `node -v` (should print `v20.x` or higher). On Windows,
-use PowerShell or Command Prompt.
+**The page is blank / stuck on "Summoning data…"**
+It's failing to load the database. Open F12 → Console. Most likely: no internet,
+or the database URL is wrong / the file was moved or renamed in the source repo.
+Check the URL in `src/config.js` points at a file that exists.
 
-**"Could not read package.json" / "ENOENT ... package.json"**
-You're in the wrong folder. `cd` into the project folder — the one that contains
-`package.json` and `moistdb.sqlite` — and run the command again.
+**It loads, but shows old data**
+jsDelivr is serving a cached copy. Open the purge URL once to refresh it:
+`https://purge.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite`
+then reload (Ctrl+Shift+R / Cmd+Shift+R).
 
-**`npm install` fails**
-Usually the internet connection or a company network/VPN blocking the download.
-Try again on a normal connection. If it half-finished, delete the `node_modules`
-folder and run `npm install` once more.
+**"This database is missing the expected views (v_SRPoints / v_SRData)"**
+The database that loaded isn't the one your normal tool produces (those views are
+built into it). Make sure the source repo has the right file.
 
-**Build fails: "Couldn't find moistdb.sqlite"**
-The database isn't where the script looks. Put your file in the **project root**
-(next to `package.json`), named exactly `moistdb.sqlite` — all lowercase.
+**"The downloaded file isn't a valid SQLite database"**
+The file at the source URL is corrupted or isn't actually a database. Confirm it
+opens in <https://beta.sqliteviewer.app> and re-upload it to the source repo.
 
-**Build fails: "doesn't look like a valid SQLite database"**
-The file is corrupted, wasn't fully copied, or isn't actually a database. Confirm
-it opens in <https://beta.sqliteviewer.app> (the tool you already use), then copy
-it over again.
+**Item icons / hover tooltips don't show**
+Those come from Wowhead's script (needs internet, can be blocked by ad blockers).
+Cosmetic only — everything else still works.
 
-**Build fails: "database is missing the required views (v_SRPoints / v_SRData)"**
-The site reads those two views for the points and history. If your database
-doesn't have them, it was likely built by an older/different process. Make sure
-the database you drop in is the one your normal tool produces (it has these
-views built in).
-
-**The site opens but is blank, or stuck on "Summoning data…"**
-Almost always because the page was opened by **double-clicking `index.html`**
-(a `file://` page isn't allowed to load the data). Serve it instead:
-`npm run preview`, or `npx serve dist`, or upload the `dist/` folder to a host.
-(Press F12 → Console to confirm — you'll see a blocked/failed request.)
-
-**I updated the database but the site shows old numbers**
-Rebuild (`npm run build`) and re-upload the new `dist/` folder, then hard-refresh
-the page (**Ctrl+Shift+R**, or Cmd+Shift+R on Mac) to bypass the cache.
-
-**Item icons or hover tooltips don't show**
-Those come from Wowhead's script, which needs internet and can be blocked by ad
-blockers. It's cosmetic — item names and everything else still work.
+**`node` / `npm` not recognized** (only relevant for local dev / building)
+Install [Node.js](https://nodejs.org) (LTS), then **close and reopen** the
+terminal. `node -v` should print v20+.
 
 **Leeroy shows up too much / I want him gone**
-Open `src/components/Leeroy.jsx` and set `ENABLED = false` (or lower
-`CHARGE_ODDS`). See [Easter eggs](#easter-eggs-) below.
+`src/components/Leeroy.jsx` → set `ENABLED = false` (or lower `CHARGE_ODDS`).
+See [Easter eggs](#easter-eggs-).
 
-**"Port already in use" when running `npm run dev` / `preview`**
-Something's already using that port. Stop the other terminal that's running it,
-or just let Vite pick the next free port (it prints the link to open).
-
-Still stuck? Copy the last ~10 lines of the error (or a screenshot of the F12
-console) and send them to **Cedrik/Drikkle**.
+Still stuck? Copy the error from the F12 console and send it to **Cedrik/Drikkle**.
 
 ---
 
 ## How it works (under the hood)
 
-- **`scripts/generate.mjs`** reads `moistdb.sqlite` and writes
-  `public/data/data.json` — the single file the app loads. It uses
-  [sql.js](https://sql.js.org) (a pure-WebAssembly SQLite engine), so there's
-  nothing to compile and it runs the same on every machine — no `sqlite3` CLI,
-  no Python, no native modules.
-- It reads the database's **own views**, so the SR-points rules live in one
+- The app loads **[sql.js](https://sql.js.org)** — SQLite compiled to
+  WebAssembly — and runs the database directly in the browser. The `.wasm` is
+  bundled with the app (not fetched from a third party); only the database file
+  comes over the network.
+- It reads the database's **own views**, so all the SR-points rules live in one
   place (the database), never duplicated in code:
-  - `v_SRPoints` — the current standings. Already handles excluding rewarded
-    items, inactive characters, and SRs placed before an item existed.
+  - `v_SRPoints` — current standings (already excludes rewarded items, inactive
+    characters, and SRs placed before an item existed).
   - `SRData` / `v_SRData` — the full soft-reserve history.
+- The query + shaping logic is `src/lib/shapeData.js`; the browser loader is
+  `src/lib/loadDb.js`.
 - Nice coincidence in the schema: `Items.item_id` is the **Wowhead item id**, so
   every item links to Wowhead with live icons + tooltips, for free.
-- `npm run build` = `generate` then `vite build`. `npm run dev` regenerates the
-  data first, then starts the live-reload preview.
+- **Trade-off:** the first visit downloads the WASM engine (~0.65 MB) and the
+  database (~0.5 MB). Both are small and cached, and it buys the "zero build,
+  zero deploy, always current" property. Worth it for a hobby site.
 
 ### Project layout
 
 ```
-moistdb.sqlite        the database you drop in (source of truth)
-scripts/generate.mjs  database -> public/data/data.json
 src/                  the React app (UI)
+src/config.js         WHERE the database is loaded from (edit this to repoint)
+src/lib/loadDb.js     loads sql.js + fetches the database in the browser
+src/lib/shapeData.js  turns the database into the data the app renders
 src/index.css         all styling; theme colours are CSS variables at the top
-public/               static assets (logo, generated data.json)
-netlify.toml          config for the optional auto-rebuild-on-Netlify path
-dist/                 build output (created by `npm run build`) — host this
+moistdb.sqlite        a local snapshot, used only for `npm run dev` (offline)
+netlify.toml          hosting config for the app itself
 ```
 
 ---
@@ -234,8 +188,8 @@ dist/                 build output (created by `npm run build`) — host this
 
 ## Easter eggs 🐔
 
-Yes, Leeroy Jenkins is in here. It's all in `src/components/Leeroy.jsx`, and it's
-fully configurable via three constants at the top of that file:
+Leeroy Jenkins is in here. It's all in `src/components/Leeroy.jsx`, configurable
+via three constants at the top:
 
 | What | How to trigger | Notes |
 |------|----------------|-------|
@@ -243,23 +197,19 @@ fully configurable via three constants at the top of that file:
 | **The battle cry** | Type `leeroy` anywhere | Full-screen "LEEEEEROY JENKINS!", raining chicken, screen shake. |
 | **Force it (for testing)** | Add `?leeroy=charge` or `?leeroy` to the URL | e.g. `yoursite.com/?leeroy=charge` |
 
-Config at the top of `src/components/Leeroy.jsx`:
-
 ```js
 const ENABLED = true;      // set false to turn the whole thing off
 const CHARGE_ODDS = 1 / 20; // chance per page load of the random charge
-                            // (use 1 while testing to see it every load)
 const CODE = "leeroy";     // the word you type for the battle cry
 ```
 
-It respects `prefers-reduced-motion`, so anyone who's asked their OS to reduce
-motion won't get the animations.
+It respects `prefers-reduced-motion`.
 
 ---
 
 ## Customising the look
 
-No CSS framework, no chart library — just plain CSS and hand-rolled SVG, so it's
-approachable. Theme colours (the WoW gold, frost blue, per-raid colours, dark
-surfaces) are all CSS variables at the very top of `src/index.css`. Change them
-there and the whole site follows.
+No CSS framework, no chart library — just plain CSS and hand-rolled SVG. Theme
+colours (the WoW gold, frost blue, per-raid colours, dark surfaces) are all CSS
+variables at the very top of `src/index.css`. Change them there and the whole
+site follows.

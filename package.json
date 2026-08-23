@@ -4,10 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate.mjs",
-    "predev": "node scripts/generate.mjs",
+    "predev": "node scripts/copy-db.mjs",
     "dev": "vite",
-    "build": "node scripts/generate.mjs && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

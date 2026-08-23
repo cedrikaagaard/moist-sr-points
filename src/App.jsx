@@ -64,8 +64,13 @@ export default function App() {
 
       {data && (
         <footer className="footer">
-          <span>Built {data.updated}</span>
-          {data.dataThrough && <span className="muted">Data through {data.dataThrough}</span>}
+          <span>
+            {data.dataThrough ? `Data through ${data.dataThrough}` : `Loaded ${data.updated}`}
+            {data.source && data.source !== "remote" && (
+              <span className="source-tag"> · {data.source} db</span>
+            )}
+          </span>
+          <span className="muted">Loaded live from the guild database</span>
         </footer>
       )}
     </div>

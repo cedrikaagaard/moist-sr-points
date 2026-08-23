@@ -1,7 +1,7 @@
-# Netlify build config. On every push, Netlify runs `npm run build`, which
-# regenerates public/data/data.json from moistdb.sqlite and then builds the
-# React app. Nobody needs Node/npm installed locally — updating the site is
-# just "replace moistdb.sqlite and push".
+# Netlify config for hosting the app. This only builds the static site (Vite).
+# Updating the DATA does NOT require a rebuild or redeploy — the app reads the
+# database live in the browser from its configured URL (see src/config.js), so
+# once this is deployed you rarely touch it again.
 [build]
   command = "npm run build"
   publish = "dist"
