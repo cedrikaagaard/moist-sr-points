@@ -193,7 +193,9 @@ netlify.toml          hosting config for the app itself
 - **SR History** — the complete log, sortable by any column (including raider
   name) and filterable by raider/item and raid.
 - **Statistics** — the fun overview: guild stats, SRs by raid, weekly activity,
-  most-contested items, and point leaders.
+  most-contested items, point leaders, a **Hall of Fame** (superlatives — loot
+  goblin, luckiest/unluckiest by wins-per-SR, biggest stockpile, etc.), and a
+  **Recent loot** feed of who won what.
 
 ---
 

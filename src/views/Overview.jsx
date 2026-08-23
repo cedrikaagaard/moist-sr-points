@@ -101,7 +101,71 @@ export default function Overview({ data }) {
           </ol>
         </section>
       </div>
+
+      <HallOfFame superlatives={data.superlatives} isMe={isMe} />
+
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Recent loot</h2>
+          <span className="muted">items awarded</span>
+        </div>
+        <ul className="loot-feed">
+          {data.lootFeed.slice(0, 16).map((w, i) => (
+            <li key={i} className={isMe(w.character) ? "me" : ""}>
+              <span className="loot-date">{w.date}</span>
+              <RaidBadge raid={w.raid} size="xs" />
+              <WowheadLink id={w.itemId} name={w.item} className="item-name loot-item" />
+              <span className="loot-arrow">→</span>
+              <PlayerLink name={w.character} className="loot-winner" />
+              {isMe(w.character) && <span className="you-tag">you</span>}
+            </li>
+          ))}
+        </ul>
+        {data.lootFeed.length === 0 && <div className="empty">No loot recorded yet.</div>}
+      </section>
     </div>
+  );
+}
+
+function HallOfFame({ superlatives: s, isMe }) {
+  const awards = [
+    { key: "mostWins", emoji: "🏆", title: "Loot goblin", sub: "most items won" },
+    { key: "luckiest", emoji: "🍀", title: "Luckiest", sub: "best wins-per-SR" },
+    { key: "unluckiest", emoji: "🐍", title: "Unluckiest", sub: "worst wins-per-SR" },
+    { key: "biggestStockpile", emoji: "💰", title: "Biggest stockpile", sub: "most points banked" },
+    { key: "mostSRs", emoji: "🎯", title: "Most dedicated", sub: "most soft-reserves" },
+    { key: "mostContested", emoji: "⚔️", title: "Most contested", sub: "most-fought-over item" },
+  ];
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <h2>Hall of fame</h2>
+        <span className="muted">guild superlatives · luck = wins vs SRs</span>
+      </div>
+      <div className="hof-grid">
+        {awards.map((a) => {
+          const v = s[a.key];
+          if (!v) return null;
+          const mine = v.name && isMe(v.name);
+          return (
+            <div key={a.key} className={`hof-card${mine ? " me" : ""}`}>
+              <div className="hof-emoji">{a.emoji}</div>
+              <div className="hof-title">{a.title}</div>
+              <div className="hof-name">
+                {v.itemId ? (
+                  <WowheadLink id={v.itemId} name={v.name} className="item-name" />
+                ) : (
+                  <PlayerLink name={v.name} className="item-name" />
+                )}
+                {mine && <span className="you-tag">you</span>}
+              </div>
+              <div className="hof-value muted">{v.value}</div>
+              <div className="hof-sub muted small">{a.sub}</div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

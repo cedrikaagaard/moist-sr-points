@@ -22,6 +22,8 @@ export async function loadData() {
 // Turn the raw data into fast lookups the UI leans on.
 function buildIndex(raw) {
   const { pointsByRaid, srHistory, updated, dataThrough, source, dbUpdated } = raw;
+  const wins = raw.wins || [];
+  const clears = raw.clears || {};
 
   // Flatten point entries: one row per (item, character).
   const pointRows = [];
@@ -68,8 +70,19 @@ function buildIndex(raw) {
     p.raids.add(h.raid);
   }
 
+  // Wins per player (items actually awarded), plus their most recent win.
+  const winsByPlayer = new Map();
+  for (const w of wins) {
+    const cur = winsByPlayer.get(w.character) || { count: 0, last: null };
+    cur.count += 1;
+    if (w.date && (!cur.last || w.date > cur.last)) cur.last = w.date;
+    winsByPlayer.set(w.character, cur);
+  }
+
   const playerList = [...players.values()].map((p) => ({
     ...p,
+    wins: winsByPlayer.get(p.name)?.count || 0,
+    lastWin: winsByPlayer.get(p.name)?.last || null,
     raids: [...p.raids].sort((a, b) => RAID_ORDER.indexOf(a) - RAID_ORDER.indexOf(b)),
     points: p.points.sort((a, b) => b.points - a.points),
     history: p.history.sort((a, b) => (a.date < b.date ? 1 : -1)),
@@ -105,11 +118,24 @@ function buildIndex(raw) {
 
   const dates = srHistory.map((h) => h.date).sort();
 
+  // Loot feed: most recent items actually won (with a real date).
+  const lootFeed = wins.filter((w) => w.date).slice(0, 40);
+
+  // Wins per item (for future item pages / luck).
+  const winsByItem = new Map();
+  for (const w of wins) winsByItem.set(w.itemId, (winsByItem.get(w.itemId) || 0) + 1);
+
+  const superlatives = computeSuperlatives(playerList, contested);
+
   return {
     updated,
     dataThrough,
     dbUpdated,
     source,
+    lootFeed,
+    superlatives,
+    winsByItem,
+    clears,
     pointsByRaid,
     srHistory,
     pointRows,
@@ -132,6 +158,43 @@ function buildIndex(raw) {
     },
     contested,
     activity,
+  };
+}
+
+// "Hall of fame" — fun, defensible awards from the data we have. Luck here is
+// roll-luck (wins vs how much you soft-reserve), which needs no drop rates.
+function computeSuperlatives(players, contested) {
+  const withSR = players.filter((p) => p.srCount >= 15); // enough SRs to be fair
+  const maxBy = (arr, f) => arr.reduce((best, p) => (f(p) > f(best) ? p : best), arr[0]);
+  const minBy = (arr, f) => arr.reduce((best, p) => (f(p) < f(best) ? p : best), arr[0]);
+  const winRate = (p) => p.wins / p.srCount;
+
+  const mk = (p, value) => (p ? { name: p.name, value } : null);
+
+  return {
+    mostWins: players.some((p) => p.wins)
+      ? mk(maxBy(players, (p) => p.wins), `${maxBy(players, (p) => p.wins).wins} items won`)
+      : null,
+    mostSRs: mk(maxBy(players, (p) => p.srCount), `${maxBy(players, (p) => p.srCount).srCount} soft-reserves`),
+    biggestStockpile: mk(
+      players[0],
+      `${players[0]?.totalPoints.toLocaleString()} points banked`
+    ),
+    luckiest: withSR.length
+      ? mk(
+          maxBy(withSR, winRate),
+          `${maxBy(withSR, winRate).wins} wins / ${maxBy(withSR, winRate).srCount} SRs`
+        )
+      : null,
+    unluckiest: withSR.length
+      ? mk(
+          minBy(withSR, winRate),
+          `${minBy(withSR, winRate).wins} wins / ${minBy(withSR, winRate).srCount} SRs`
+        )
+      : null,
+    mostContested: contested[0]
+      ? { name: contested[0].item, itemId: contested[0].itemId, raid: contested[0].raid, value: `${contested[0].srs} SRs` }
+      : null,
   };
 }
 

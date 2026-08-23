@@ -53,6 +53,26 @@ export function shapeData(query) {
     ORDER BY pg.raid_date DESC, rd.raid_id, c.character_name
   `);
 
+  // Items actually awarded (won) — powers the loot feed, superlatives, and luck.
+  const wins = query(`
+    SELECT i.item_name AS item, i.item_id AS itemId, c.character_name AS character,
+           r.date_rewarded AS date, rd.short_name AS raid
+    FROM RewardedItems r
+    JOIN Items i      ON i.item_id      = r.item_id
+    JOIN Characters c ON c.character_id = r.character_id
+    JOIN Raids rd     ON rd.raid_id     = i.raid_id
+    ORDER BY r.date_rewarded DESC
+  `);
+
+  // Number of raid nights per raid (one SR page per raid per date) — the
+  // denominator for "expected drops" in the luck calc.
+  const clearsRows = query(`
+    SELECT rd.short_name AS raid, COUNT(*) AS clears
+    FROM SRPages pg JOIN Raids rd ON rd.raid_id = pg.raid_id
+    GROUP BY rd.raid_id
+  `);
+  const clears = Object.fromEntries(clearsRows.map((r) => [r.raid, r.clears]));
+
   const dataThrough = query(`SELECT MAX(raid_date) AS d FROM SRPages`)[0]?.d ?? null;
 
   const now = new Date();
@@ -61,5 +81,5 @@ export function shapeData(query) {
     `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
     `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
-  return { updated, dataThrough, raids, pointsByRaid, srHistory };
+  return { updated, dataThrough, raids, pointsByRaid, srHistory, wins, clears };
 }

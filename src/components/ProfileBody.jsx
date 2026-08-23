@@ -41,9 +41,9 @@ export default function ProfileBody({ data, player }) {
     <>
       <div className="stat-row">
         <StatTile label="Total points" value={player.totalPoints.toLocaleString()} accent="var(--gold)" />
+        <StatTile label="Items won" value={player.wins ?? 0} />
         <StatTile label="Soft-reserves" value={player.srCount} />
         <StatTile label="Items with points" value={player.points.length} />
-        <StatTile label="SR records" value={player.history.length} />
       </div>
 
       {topBets.length > 0 && (
