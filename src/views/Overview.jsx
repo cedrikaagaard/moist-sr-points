@@ -104,6 +104,8 @@ export default function Overview({ data }) {
 
       <HallOfFame superlatives={data.superlatives} isMe={isMe} />
 
+      <GuildLuck luck={data.luck} />
+
       <section className="panel">
         <div className="panel-head">
           <h2>Recent loot</h2>
@@ -124,6 +126,81 @@ export default function Overview({ data }) {
         {data.lootFeed.length === 0 && <div className="empty">No loot recorded yet.</div>}
       </section>
     </div>
+  );
+}
+
+function GuildLuck({ luck }) {
+  if (!luck || luck.coverage.withRates === 0) {
+    return (
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Guild luck</h2>
+          <span className="muted">drops vs. expected</span>
+        </div>
+        <div className="empty luck-empty">
+          <p>
+            <strong>Add drop rates to unlock this.</strong>
+          </p>
+          <p className="muted">
+            Fill in <code>src/data/dropRates.js</code> — every tracked item is already listed, you
+            just add each item's drop chance. As you do, this panel shows whether the guild has been
+            lucky or unlucky with drops (actual vs. expected). {luck?.coverage.total} items are ready
+            to fill in.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const o = luck.overall;
+  const pct = Math.round(o.index * 100);
+  const verdict = pct >= 108 ? "lucky" : pct <= 92 ? "unlucky" : "about average";
+  const tone = pct >= 108 ? "good" : pct <= 92 ? "bad" : "neutral";
+
+  const List = ({ title, items }) => (
+    <section className="panel">
+      <div className="panel-head">
+        <h2>{title}</h2>
+        <span className="muted">got / expected</span>
+      </div>
+      <ol className="ranked-list">
+        {items.map((it) => (
+          <li key={it.itemId}>
+            <RaidBadge raid={it.raid} size="sm" />
+            <WowheadLink id={it.itemId} name={it.item} className="item-name" />
+            <span className="ranked-metric">
+              {it.actual} / {it.expected.toFixed(1)}
+              <span className="muted"> · {Math.round(it.index * 100)}%</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+
+  return (
+    <>
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Guild luck</h2>
+          <span className="muted">
+            based on {luck.coverage.withRates} of {luck.coverage.total} items · drop rates are
+            approximate
+          </span>
+        </div>
+        <div className="luck-hero">
+          <div className={`luck-index luck-${tone}`}>{pct}%</div>
+          <div className="luck-text">
+            The guild has seen <strong>{o.actual}</strong> of ~
+            <strong>{Math.round(o.expected)}</strong> expected drops — <strong>{verdict}</strong>.
+          </div>
+        </div>
+      </section>
+      <div className="grid-2">
+        <List title="Luckiest drops" items={luck.luckiest} />
+        <List title="Unluckiest drops" items={luck.unluckiest} />
+      </div>
+    </>
   );
 }
 

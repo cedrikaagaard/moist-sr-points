@@ -97,6 +97,24 @@ To change the default source permanently, edit `REMOTE_DB_URL` in
 
 ---
 
+## Drop rates & "Guild luck"
+
+The **Guild luck** panel on the Statistics page compares how often items have
+actually dropped against how often they *should* have, given how many times each
+raid has been cleared. That needs a drop rate per item — and those aren't in the
+database (and there's no reliable free source to pull them automatically), so
+they live in **`src/data/dropRates.js`**, which you fill in.
+
+- Every tracked item is already listed there; you just replace each `null` with
+  the item's drop chance as a decimal (15% → `0.15`), read off Wowhead's
+  "Dropped by" section.
+- Items left as `null` are simply excluded. The panel shows how many items it's
+  based on and stays hidden/soft until at least one rate is filled in.
+- These are rough, for-fun numbers (shared loot tables, multiple bosses…), so
+  the panel labels the luck as approximate. It's a fun indicator, not science.
+
+---
+
 ## Troubleshooting — if something isn't working
 
 These are the common snags and their fixes.
@@ -194,8 +212,9 @@ netlify.toml          hosting config for the app itself
   name) and filterable by raider/item and raid.
 - **Statistics** — the fun overview: guild stats, SRs by raid, weekly activity,
   most-contested items, point leaders, a **Hall of Fame** (superlatives — loot
-  goblin, luckiest/unluckiest by wins-per-SR, biggest stockpile, etc.), and a
-  **Recent loot** feed of who won what.
+  goblin, luckiest/unluckiest by wins-per-SR, biggest stockpile, etc.), a
+  **Recent loot** feed of who won what, and **Guild luck** (drops vs. expected —
+  see below).
 
 ---
 

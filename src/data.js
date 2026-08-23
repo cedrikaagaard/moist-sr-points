@@ -11,6 +11,7 @@ export const RAID_META = {
 };
 
 import { loadFromDb } from "./lib/loadDb.js";
+import { DROP_RATES } from "./data/dropRates.js";
 
 export async function loadData() {
   // Reads the SQLite database live, in the browser (sql.js). The source is
@@ -127,6 +128,13 @@ function buildIndex(raw) {
 
   const superlatives = computeSuperlatives(playerList, contested);
 
+  // Item metadata (name + raid) for every tracked item, for the luck calc.
+  const itemMeta = new Map();
+  for (const raid of RAID_ORDER) {
+    for (const it of pointsByRaid[raid] || []) itemMeta.set(it.itemId, { item: it.item, raid });
+  }
+  const luck = computeLuck(itemMeta, winsByItem, clears);
+
   return {
     updated,
     dataThrough,
@@ -136,6 +144,7 @@ function buildIndex(raw) {
     superlatives,
     winsByItem,
     clears,
+    luck,
     pointsByRaid,
     srHistory,
     pointRows,
@@ -158,6 +167,49 @@ function buildIndex(raw) {
     },
     contested,
     activity,
+  };
+}
+
+// Guild "drop luck": did items drop more or less often than their drop rate
+// predicts, given how many times we've cleared each raid? Only considers items
+// that have a drop rate filled in (src/data/dropRates.js).
+function computeLuck(itemMeta, winsByItem, clears) {
+  const items = [];
+  let sumActual = 0;
+  let sumExpected = 0;
+
+  for (const [itemId, meta] of itemMeta) {
+    const rate = DROP_RATES[itemId];
+    if (rate == null || rate <= 0) continue;
+    const raidClears = clears[meta.raid] || 0;
+    if (!raidClears) continue;
+    const expected = raidClears * rate;
+    const actual = winsByItem.get(itemId) || 0;
+    sumActual += actual;
+    sumExpected += expected;
+    items.push({
+      itemId,
+      item: meta.item,
+      raid: meta.raid,
+      rate,
+      expected,
+      actual,
+      index: expected > 0 ? actual / expected : null, // >1 lucky, <1 unlucky
+    });
+  }
+
+  items.sort((a, b) => b.index - a.index);
+  // Only surface items with a meaningful sample (expected >= ~1 drop).
+  const meaningful = items.filter((i) => i.expected >= 1);
+
+  return {
+    coverage: { withRates: items.length, total: itemMeta.size },
+    overall:
+      sumExpected > 0
+        ? { actual: sumActual, expected: sumExpected, index: sumActual / sumExpected }
+        : null,
+    luckiest: meaningful.slice(0, 6),
+    unluckiest: meaningful.slice(-6).reverse(),
   };
 }
 
