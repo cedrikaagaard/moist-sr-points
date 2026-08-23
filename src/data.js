@@ -114,6 +114,12 @@ function buildIndex(raw) {
     pointRows,
     players: playerList,
     playerByName: new Map(playerList.map((p) => [p.name.toLowerCase(), p])),
+    // Look up an item's full contender field by "raid|itemId" (used for odds).
+    itemByKey: new Map(
+      RAID_ORDER.flatMap((raid) =>
+        (pointsByRaid[raid] || []).map((it) => [`${raid}|${it.itemId}`, it])
+      )
+    ),
     stats: {
       playerCount: playerList.length,
       itemCount: Object.values(pointsByRaid).reduce((a, v) => a + v.length, 0),

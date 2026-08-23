@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { RAID_ORDER, RAID_META } from "../data.js";
-import { WowheadLink, RaidBadge, StatTile } from "../components/common.jsx";
+import { RaidBadge } from "../components/common.jsx";
+import ProfileBody from "../components/ProfileBody.jsx";
 import { navigate, href } from "../router.js";
 
 export default function Players({ data, name }) {
@@ -69,17 +69,6 @@ function PlayerDirectory({ data, initial }) {
 }
 
 function PlayerProfile({ data, player }) {
-  // Group point holdings by raid.
-  const byRaid = {};
-  for (const r of RAID_ORDER) byRaid[r] = [];
-  for (const p of player.points) byRaid[p.raid].push(p);
-
-  // SR counts per item for this player (from history).
-  const srPerItem = new Map();
-  for (const h of player.history) {
-    srPerItem.set(h.item, (srPerItem.get(h.item) || 0) + h.quantity);
-  }
-
   return (
     <div className="view">
       <button className="back-btn" onClick={() => navigate("players")}>
@@ -98,58 +87,7 @@ function PlayerProfile({ data, player }) {
         </div>
       </div>
 
-      <div className="stat-row">
-        <StatTile label="Total points" value={player.totalPoints.toLocaleString()} accent="var(--gold)" />
-        <StatTile label="Soft-reserves" value={player.srCount} />
-        <StatTile label="Items with points" value={player.points.length} />
-        <StatTile label="SR records" value={player.history.length} />
-      </div>
-
-      <div className="grid-2">
-        <section className="panel">
-          <div className="panel-head">
-            <h2>Points by item</h2>
-            <span className="muted">across all raids</span>
-          </div>
-          {RAID_ORDER.filter((r) => byRaid[r].length).map((r) => (
-            <div key={r} className="profile-raid-group">
-              <div className="profile-raid-label">
-                <RaidBadge raid={r} size="sm" /> {RAID_META[r].name}
-              </div>
-              <ul className="profile-item-list">
-                {byRaid[r].map((p) => (
-                  <li key={p.item}>
-                    <WowheadLink id={p.itemId} name={p.item} className="item-name" />
-                    <span className="muted small">
-                      {srPerItem.get(p.item) ? `${srPerItem.get(p.item)} SR` : ""}
-                    </span>
-                    <span className="point-pill">{p.points}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          {player.points.length === 0 && <div className="empty">No accumulated points yet.</div>}
-        </section>
-
-        <section className="panel">
-          <div className="panel-head">
-            <h2>SR history</h2>
-            <span className="muted">{player.history.length} records</span>
-          </div>
-          <ul className="timeline">
-            {player.history.map((h, i) => (
-              <li key={i}>
-                <span className="timeline-date">{h.date}</span>
-                <RaidBadge raid={h.raid} size="xs" />
-                <WowheadLink id={h.itemId} name={h.item} className="item-name" />
-                {h.quantity > 1 && <span className="qty-pill">×{h.quantity}</span>}
-              </li>
-            ))}
-          </ul>
-          {player.history.length === 0 && <div className="empty">No SR history recorded.</div>}
-        </section>
-      </div>
+      <ProfileBody data={data} player={player} />
     </div>
   );
 }

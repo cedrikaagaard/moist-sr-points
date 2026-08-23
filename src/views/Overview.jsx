@@ -1,8 +1,10 @@
 import { RAID_ORDER, RAID_META } from "../data.js";
 import { StatTile, BarChart, WowheadLink, RaidBadge, PlayerLink, Rank } from "../components/common.jsx";
 import { navigate } from "../router.js";
+import { useMe, makeIsMe } from "../identity.js";
 
 export default function Overview({ data }) {
+  const isMe = makeIsMe(useMe());
   const { stats, contested, activity, players } = data;
   const raidRows = RAID_ORDER.map((r) => ({
     label: RAID_META[r].name,
@@ -86,9 +88,10 @@ export default function Overview({ data }) {
           </div>
           <ol className="ranked-list">
             {players.slice(0, 10).map((p, i) => (
-              <li key={p.name}>
+              <li key={p.name} className={isMe(p.name) ? "me" : ""}>
                 <Rank n={i + 1} />
                 <PlayerLink name={p.name} className="item-name" />
+                {isMe(p.name) && <span className="you-tag">you</span>}
                 <span className="ranked-metric">
                   {p.totalPoints.toLocaleString()} pts
                   <span className="muted"> · {p.srCount} SR</span>

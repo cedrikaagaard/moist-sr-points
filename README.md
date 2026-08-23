@@ -161,8 +161,10 @@ Still stuck? Copy the error from the F12 console and send it to **Cedrik/Drikkle
 ```
 src/                  the React app (UI)
 src/config.js         WHERE the database is loaded from (edit this to repoint)
+src/identity.js       the no-login "who am I" (My Page), saved in localStorage
 src/lib/loadDb.js     loads sql.js + fetches the database in the browser
 src/lib/shapeData.js  turns the database into the data the app renders
+src/lib/odds.js       win-the-roll probabilities (points + d100)
 src/index.css         all styling; theme colours are CSS variables at the top
 moistdb.sqlite        a local snapshot, used only for `npm run dev` (offline)
 netlify.toml          hosting config for the app itself
@@ -172,6 +174,12 @@ netlify.toml          hosting config for the app itself
 
 ## The site's pages
 
+- **My Page** — pick your character once (no login — saved on the device) and get
+  a personal page: your points, your SR history, and **Best bets** — your chance
+  to win the roll on each item you have points on. Your rows are highlighted
+  across the whole site, and the header shows who you are. Handles brand-new
+  raiders with no points yet. *(Win-odds assume everyone with points contests the
+  item, so they're a worst-case — see the note on that panel.)*
 - **Points** (the home page) — every tracked item, grouped and ranked with
   point bars. Defaults to **all raids** and is searchable, so a raider can just
   type their name to see their items; the raid buttons (All / MC / BWL / AQ40 /

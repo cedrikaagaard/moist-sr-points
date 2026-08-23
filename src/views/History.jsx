@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { RAID_ORDER, RAID_META } from "../data.js";
 import { WowheadLink, RaidBadge, PlayerLink } from "../components/common.jsx";
+import { useMe, makeIsMe } from "../identity.js";
 
 const PAGE = 60;
 
 export default function History({ data }) {
+  const isMe = makeIsMe(useMe());
   const [query, setQuery] = useState("");
   const [raidFilter, setRaidFilter] = useState(new Set());
   const [sort, setSort] = useState({ key: "date", dir: "desc" });
@@ -107,7 +109,7 @@ export default function History({ data }) {
           </thead>
           <tbody>
             {slice.map((r, i) => (
-              <tr key={i}>
+              <tr key={i} className={isMe(r.character) ? "me" : ""}>
                 <td><WowheadLink id={r.itemId} name={r.item} className="item-name" /></td>
                 <td><PlayerLink name={r.character} /></td>
                 <td className="mono">{r.date}</td>

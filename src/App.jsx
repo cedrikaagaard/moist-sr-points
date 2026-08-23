@@ -5,9 +5,12 @@ import Overview from "./views/Overview.jsx";
 import Points from "./views/Points.jsx";
 import Players from "./views/Players.jsx";
 import History from "./views/History.jsx";
+import Me from "./views/Me.jsx";
 import Leeroy from "./components/Leeroy.jsx";
+import { useMe } from "./identity.js";
 
 const NAV = [
+  { view: "me", label: "My Page" },
   { view: "points", label: "Points" },
   { view: "players", label: "Raiders" },
   { view: "history", label: "SR History" },
@@ -50,12 +53,14 @@ export default function App() {
             </a>
           ))}
         </nav>
+        <MeChip active={view === "me"} />
         {data && <GlobalSearch data={data} />}
       </header>
 
       <main className="content">
         {error && <div className="empty error">Couldn’t load data: {error}</div>}
         {!data && !error && <div className="loading">Summoning data…</div>}
+        {data && view === "me" && <Me data={data} />}
         {data && view === "stats" && <Overview data={data} />}
         {data && view === "points" && <Points data={data} raid={param} />}
         {data && view === "players" && <Players data={data} name={param} />}
@@ -74,6 +79,24 @@ export default function App() {
         </footer>
       )}
     </div>
+  );
+}
+
+function MeChip({ active }) {
+  const me = useMe();
+  if (!me) {
+    return (
+      <a className={`me-chip me-chip-empty${active ? " active" : ""}`} href={href("me")}>
+        <span className="me-chip-avatar">?</span>
+        Set your character
+      </a>
+    );
+  }
+  return (
+    <a className={`me-chip${active ? " active" : ""}`} href={href("me")} title="Your page">
+      <span className="me-chip-avatar">{me.slice(0, 2).toUpperCase()}</span>
+      {me}
+    </a>
   );
 }
 

@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import { RAID_ORDER, RAID_META } from "../data.js";
 import { WowheadLink, RaidBadge, Rank, PlayerLink } from "../components/common.jsx";
 import { navigate } from "../router.js";
+import { useMe, makeIsMe } from "../identity.js";
 
 export default function Points({ data, raid }) {
+  const isMe = makeIsMe(useMe());
   // Default view is "all" raids — most people just want to find their own item.
   const activeRaid = RAID_ORDER.includes(raid) ? raid : "all";
   const [query, setQuery] = useState("");
@@ -80,17 +82,37 @@ export default function Points({ data, raid }) {
 
       <div className="item-grid">
         {filtered.map((it) => (
-          <ItemCard key={it.item} item={it} highlight={q && it.matchOnly ? q : null} />
+          <ItemCard key={it.item} item={it} highlight={q && it.matchOnly ? q : null} isMe={isMe} />
         ))}
       </div>
     </div>
   );
 }
 
-function ItemCard({ item, highlight }) {
+function ItemCard({ item, highlight, isMe }) {
   const [expanded, setExpanded] = useState(false);
-  const shown = expanded ? item.entries : item.entries.slice(0, 8);
   const top = item.entries[0]?.points || 1;
+
+  // Show the top 8, but if "you" are further down, pin your row so you always
+  // see where you stand on the item.
+  const myIndex = item.entries.findIndex((e) => isMe(e.character));
+  const shown = expanded ? item.entries : item.entries.slice(0, 8);
+  const showPinned = !expanded && myIndex >= 8;
+
+  const Row = (e, i) => (
+    <li
+      key={e.character + i}
+      className={`${highlight && e.character.toLowerCase().includes(highlight) ? "hit " : ""}${isMe(e.character) ? "me" : ""}`}
+    >
+      <Rank n={i + 1} />
+      <PlayerLink name={e.character} className="point-name" />
+      {isMe(e.character) && <span className="you-tag">you</span>}
+      <div className="point-bar-track">
+        <div className="point-bar-fill" style={{ width: `${(e.points / top) * 100}%` }} />
+      </div>
+      <span className="point-value">{e.points}</span>
+    </li>
+  );
 
   return (
     <div className="item-card">
@@ -100,16 +122,13 @@ function ItemCard({ item, highlight }) {
         <span className="item-count">{item.entries.length} reserved</span>
       </div>
       <ul className="point-list">
-        {shown.map((e, i) => (
-          <li key={e.character + i} className={highlight && e.character.toLowerCase().includes(highlight) ? "hit" : ""}>
-            <Rank n={i + 1} />
-            <PlayerLink name={e.character} className="point-name" />
-            <div className="point-bar-track">
-              <div className="point-bar-fill" style={{ width: `${(e.points / top) * 100}%` }} />
-            </div>
-            <span className="point-value">{e.points}</span>
-          </li>
-        ))}
+        {shown.map((e, i) => Row(e, i))}
+        {showPinned && (
+          <>
+            <li className="point-ellipsis">⋯</li>
+            {Row(item.entries[myIndex], myIndex)}
+          </>
+        )}
       </ul>
       {item.entries.length > 8 && (
         <button className="link-btn" onClick={() => setExpanded((v) => !v)}>
