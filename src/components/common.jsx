@@ -1,26 +1,33 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { RAID_META, wowheadUrl } from "../data.js";
 import { href } from "../router.js";
 
-// A Wowhead item link. The global tooltips.js script (loaded in index.html)
-// decorates these with an icon + hover tooltip. Because we render links
-// dynamically, we nudge it to re-scan on mount.
-export function WowheadLink({ id, name, className }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    if (window.$WowheadPower && ref.current) {
-      try {
-        window.$WowheadPower.refreshLinks();
-      } catch {
-        /* tooltip decoration is best-effort */
-      }
+// The Wowhead tooltip script decorates links with icons/tooltips, but for
+// dynamically rendered links you have to call refreshLinks(). That scans the
+// whole document, so calling it once per link (130+ on the Points page) is what
+// makes typing lag. Instead every link schedules a SINGLE coalesced refresh.
+let refreshTimer = null;
+function scheduleWowheadRefresh() {
+  if (refreshTimer) return;
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    try {
+      window.$WowheadPower?.refreshLinks();
+    } catch {
+      /* tooltip decoration is best-effort */
     }
-  }, [id, name]);
+  }, 250);
+}
+
+// A Wowhead item link (icon + hover tooltip via the global tooltips.js script).
+export function WowheadLink({ id, name, className }) {
+  useEffect(() => {
+    if (id) scheduleWowheadRefresh();
+  }, [id]);
 
   if (!id) return <span className={className}>{name}</span>;
   return (
     <a
-      ref={ref}
       className={className}
       href={wowheadUrl(id)}
       target="_blank"

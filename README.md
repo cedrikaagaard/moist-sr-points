@@ -150,6 +150,9 @@ Still stuck? Copy the error from the F12 console and send it to **Cedrik/Drikkle
   - `SRData` / `v_SRData` — the full soft-reserve history.
 - The query + shaping logic is `src/lib/shapeData.js`; the browser loader is
   `src/lib/loadDb.js`.
+- The footer shows how current the data is: the latest raid date in the database,
+  plus — when reachable — how long ago the database file was last committed (via
+  the GitHub API; it degrades gracefully if that's blocked or rate-limited).
 - Nice coincidence in the schema: `Items.item_id` is the **Wowhead item id**, so
   every item links to Wowhead with live icons + tooltips, for free.
 - **Trade-off:** the first visit downloads the WASM engine (~0.65 MB) and the

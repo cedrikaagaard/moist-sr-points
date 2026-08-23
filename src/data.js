@@ -21,7 +21,7 @@ export async function loadData() {
 
 // Turn the raw data into fast lookups the UI leans on.
 function buildIndex(raw) {
-  const { pointsByRaid, srHistory, updated, dataThrough, source } = raw;
+  const { pointsByRaid, srHistory, updated, dataThrough, source, dbUpdated } = raw;
 
   // Flatten point entries: one row per (item, character).
   const pointRows = [];
@@ -108,6 +108,7 @@ function buildIndex(raw) {
   return {
     updated,
     dataThrough,
+    dbUpdated,
     source,
     pointsByRaid,
     srHistory,

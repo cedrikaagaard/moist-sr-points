@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { RAID_ORDER, RAID_META } from "../data.js";
 import { WowheadLink, RaidBadge, PlayerLink } from "../components/common.jsx";
 import { useMe, makeIsMe } from "../identity.js";
+import { useDebouncedValue } from "../lib/useDebouncedValue.js";
 
 const PAGE = 60;
 
@@ -12,7 +13,7 @@ export default function History({ data }) {
   const [sort, setSort] = useState({ key: "date", dir: "desc" });
   const [page, setPage] = useState(1);
 
-  const q = query.trim().toLowerCase();
+  const q = useDebouncedValue(query.trim().toLowerCase());
 
   const rows = useMemo(() => {
     let r = data.srHistory;

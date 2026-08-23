@@ -70,16 +70,48 @@ export default function App() {
       {data && (
         <footer className="footer">
           <span>
-            {data.dataThrough ? `Data through ${data.dataThrough}` : `Loaded ${data.updated}`}
+            {data.dataThrough ? (
+              <>Data current through <strong>{data.dataThrough}</strong></>
+            ) : (
+              `Loaded ${data.updated}`
+            )}
+            {data.dbUpdated && (
+              <>
+                {" · database updated "}
+                <span title={new Date(data.dbUpdated).toLocaleString()}>
+                  {timeAgo(data.dbUpdated)}
+                </span>
+              </>
+            )}
             {data.source && data.source !== "remote" && (
               <span className="source-tag"> · {data.source} db</span>
             )}
           </span>
-          <span className="muted">Loaded live from the guild database</span>
+          <span className="muted">live from the guild database</span>
         </footer>
       )}
     </div>
   );
+}
+
+// Human "x ago" from an HTTP date string (e.g. Last-Modified).
+function timeAgo(dateStr) {
+  const then = new Date(dateStr).getTime();
+  if (Number.isNaN(then)) return "recently";
+  const secs = Math.max(0, (Date.now() - then) / 1000);
+  const units = [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["week", 604800],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [name, size] of units) {
+    const n = Math.floor(secs / size);
+    if (n >= 1) return `${n} ${name}${n > 1 ? "s" : ""} ago`;
+  }
+  return "just now";
 }
 
 function MeChip({ active }) {

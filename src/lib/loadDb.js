@@ -23,24 +23,54 @@ async function fetchDb(url) {
   const buffer = await res.arrayBuffer();
   const head = new TextDecoder().decode(new Uint8Array(buffer, 0, SQLITE_HEADER.length));
   if (head !== SQLITE_HEADER) throw new Error("not a SQLite database");
-  return buffer;
+  // When the database was last changed (from the CDN / server response), used to
+  // show how recent the data is.
+  return { buffer, lastModified: res.headers.get("last-modified") };
+}
+
+// jsDelivr doesn't expose a Last-Modified, so for the remote source we ask the
+// GitHub API for the date of the last commit that touched the database file —
+// the true "database last updated" time. Best-effort (unauthenticated, so it can
+// be rate-limited); on any failure we just don't show a time.
+function githubCommitsApi(jsdelivrUrl) {
+  const m = jsdelivrUrl.match(/cdn\.jsdelivr\.net\/gh\/([^/]+)\/([^@/]+)@([^/]+)\/(.+)$/);
+  if (!m) return null;
+  const [, owner, repo, branch, path] = m;
+  return `https://api.github.com/repos/${owner}/${repo}/commits?sha=${branch}&path=${encodeURIComponent(path)}&per_page=1`;
+}
+
+async function fetchCommitDate(jsdelivrUrl) {
+  const api = githubCommitsApi(jsdelivrUrl);
+  if (!api) return null;
+  try {
+    const res = await fetch(api);
+    if (!res.ok) return null;
+    const commits = await res.json();
+    return commits[0]?.commit?.committer?.date || null;
+  } catch {
+    return null;
+  }
 }
 
 // Pick the database source: explicit override → local file (if present) → remote.
 async function resolveDb() {
   if (DB_OVERRIDE) {
-    return { source: "override", url: DB_OVERRIDE, buffer: await fetchDb(DB_OVERRIDE) };
+    return { source: "override", url: DB_OVERRIDE, ...(await fetchDb(DB_OVERRIDE)) };
   }
   try {
-    return { source: "local", url: LOCAL_DB_URL, buffer: await fetchDb(LOCAL_DB_URL) };
+    return { source: "local", url: LOCAL_DB_URL, ...(await fetchDb(LOCAL_DB_URL)) };
   } catch {
     // No usable local copy — fall through to the live remote database.
   }
-  return { source: "remote", url: REMOTE_DB_URL, buffer: await fetchDb(REMOTE_DB_URL) };
+  return { source: "remote", url: REMOTE_DB_URL, ...(await fetchDb(REMOTE_DB_URL)) };
 }
 
 // Errors here are shown to the user, so keep the messages plain and useful.
 export async function loadFromDb() {
+  // Kick off the "last updated" lookup in parallel — it's a footer nicety and
+  // must never slow down or block the actual data load.
+  const commitDate = fetchCommitDate(REMOTE_DB_URL);
+
   let SQL, picked;
   try {
     [SQL, picked] = await Promise.all([getSql(), resolveDb()]);
@@ -51,7 +81,7 @@ export async function loadFromDb() {
     );
   }
 
-  const { source, url, buffer } = picked;
+  const { source, url, buffer, lastModified } = picked;
   console.info(
     `%c[Moist]%c database source: %c${source}%c → ${url}`,
     "color:#d4af5a;font-weight:bold",
@@ -74,8 +104,12 @@ export async function loadFromDb() {
     return values.map((row) => Object.fromEntries(columns.map((c, i) => [c, row[i]])));
   };
 
+  // Prefer the git commit date (remote); fall back to a Last-Modified header
+  // (e.g. the local dev server), else nothing.
+  const dbUpdated = (source === "remote" ? await commitDate : null) || lastModified || null;
+
   try {
-    return { ...shapeData(query), source, sourceUrl: url };
+    return { ...shapeData(query), source, sourceUrl: url, dbUpdated };
   } catch (err) {
     if (/no such (table|view|column)/i.test(err.message)) {
       throw new Error(

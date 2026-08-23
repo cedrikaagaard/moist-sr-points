@@ -3,6 +3,7 @@ import { RAID_ORDER, RAID_META } from "../data.js";
 import { WowheadLink, RaidBadge, Rank, PlayerLink } from "../components/common.jsx";
 import { navigate } from "../router.js";
 import { useMe, makeIsMe } from "../identity.js";
+import { useDebouncedValue } from "../lib/useDebouncedValue.js";
 
 export default function Points({ data, raid }) {
   const isMe = makeIsMe(useMe());
@@ -15,7 +16,7 @@ export default function Points({ data, raid }) {
       ? RAID_ORDER.flatMap((r) => data.pointsByRaid[r] || [])
       : data.pointsByRaid[activeRaid] || [];
 
-  const q = query.trim().toLowerCase();
+  const q = useDebouncedValue(query.trim().toLowerCase());
   const filtered = useMemo(() => {
     if (!q) return items.map((it) => ({ ...it, matchOnly: false }));
     return items

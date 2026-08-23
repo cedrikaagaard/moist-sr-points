@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { RaidBadge } from "../components/common.jsx";
 import ProfileBody from "../components/ProfileBody.jsx";
 import { navigate, href } from "../router.js";
+import { useDebouncedValue } from "../lib/useDebouncedValue.js";
 
 export default function Players({ data, name }) {
   if (name) {
@@ -13,7 +14,7 @@ export default function Players({ data, name }) {
 
 function PlayerDirectory({ data, initial }) {
   const [query, setQuery] = useState(initial);
-  const q = query.trim().toLowerCase();
+  const q = useDebouncedValue(query.trim().toLowerCase());
   const list = useMemo(() => {
     const base = q ? data.players.filter((p) => p.name.toLowerCase().includes(q)) : data.players;
     return base.slice(0, 120);
