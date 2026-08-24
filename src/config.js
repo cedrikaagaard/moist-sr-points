@@ -7,9 +7,10 @@
 //
 // So dropping a moistdb.sqlite next to the app (or `npm run dev`, which copies
 // one into public/) lets you test against a specific database; otherwise the
-// site tracks the live remote one. jsDelivr caches the remote for a while
-// (~12h); force it with:
-//   https://purge.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite
+// site tracks the live remote one. For the remote, loadDb.js pins the request to
+// the latest commit hash (via the GitHub API) so pushes appear within a minute
+// instead of waiting on jsDelivr's ~12h branch cache; it falls back to this
+// @main URL if that lookup fails.
 
 export const REMOTE_DB_URL =
   "https://cdn.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite";
