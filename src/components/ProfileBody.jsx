@@ -70,7 +70,7 @@ export default function ProfileBody({ data, player }) {
           </ul>
           <p className="bets-note muted small">
             Odds assume <strong>everyone with points</strong> reserves and rolls. In a real raid
-            fewer show up, so your true chances are usually better — and anyone can SR and win on a
+            fewer show up, so your true chances are usually better, and anyone can SR and win on a
             pure roll. Think of these as worst-case.
           </p>
         </section>

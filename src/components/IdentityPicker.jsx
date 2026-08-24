@@ -27,7 +27,7 @@ export default function IdentityPicker({ players, onPick, autoFocus, placeholder
   const options = [
     ...matches.map((p) => ({ name: p.name, meta: `${p.totalPoints} pts`, isNew: false })),
     ...(q.trim() && !exact
-      ? [{ name: q.trim(), meta: "new raider — no points yet", isNew: true }]
+      ? [{ name: q.trim(), meta: "new raider, no points yet", isNew: true }]
       : []),
   ];
 

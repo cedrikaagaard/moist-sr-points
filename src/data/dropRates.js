@@ -1,20 +1,20 @@
-// Drop rates for the tracked items — the input to the guild "luck" analysis.
+// Drop rates for the tracked items - the input to the guild "luck" analysis.
 //
 // HOW TO FILL THIS IN
 // Each entry is the chance the item drops per raid clear, as a number from 0 to
 // 1 (so 15% → 0.15). Look the item up on Wowhead's Classic site and read the
 // percentage in its "Dropped by" section, e.g. Onslaught Girdle shows a % under
-// Ragnaros — put that as a decimal here.
+// Ragnaros - put that as a decimal here.
 //
 //   17063: 0.16,   // instead of  17063: null,
 //
-// Leave an item as `null` if you don't have a number yet — it's simply excluded
+// Leave an item as `null` if you don't have a number yet - it's simply excluded
 // from the luck stats. The "Guild luck" panel lights up as you fill these in and
 // shows how many items it's based on. Every tracked item is pre-listed below so
 // you only have to type the numbers.
 //
 // NOTE: these are per-clear drop chances. For items shared across bosses or that
-// can drop more than once, an approximate single number is fine — luck is a
+// can drop more than once, an approximate single number is fine - luck is a
 // rough, for-fun indicator, not an exact science.
 
 export const DROP_RATES = {

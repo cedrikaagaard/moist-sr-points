@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 // ---------------------------------------------------------------------------
 // Leeroy Jenkins easter egg (documented in README.md → "Easter eggs").
 // Two flavours:
-//   • CHARGE — random page loads, Leeroy sprints across the screen (unprompted).
-//   • CRY    — type the CODE anywhere for the full battle cry.
+//   • CHARGE - random page loads, Leeroy sprints across the screen (unprompted).
+//   • CRY    - type the CODE anywhere for the full battle cry.
 // You can also force either via the URL: ?leeroy=charge or ?leeroy (cry).
 //
 // Tweak these to taste:

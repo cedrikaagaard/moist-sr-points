@@ -7,7 +7,7 @@ import { useDebouncedValue } from "../lib/useDebouncedValue.js";
 
 export default function Points({ data, raid }) {
   const isMe = makeIsMe(useMe());
-  // Default view is "all" raids — most people just want to find their own item.
+  // Default view is "all" raids - most people just want to find their own item.
   const activeRaid = RAID_ORDER.includes(raid) ? raid : "all";
   const [query, setQuery] = useState("");
   const meta = RAID_META[activeRaid];
@@ -38,7 +38,7 @@ export default function Points({ data, raid }) {
           <p className="muted">
             {activeRaid === "all" ? (
               <>
-                Each soft-reserve is worth <strong>10 points</strong> — except{" "}
+                Each soft-reserve is worth <strong>10 points</strong>, except{" "}
                 <strong>Naxxramas</strong>, where it's <strong>5</strong>.
               </>
             ) : (

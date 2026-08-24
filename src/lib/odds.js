@@ -4,13 +4,13 @@
 //
 // IMPORTANT framing (the data can't know this, the UI must say it): these odds
 // assume *every listed point-holder* actually SRs the item and rolls. In a real
-// raid, many won't be present — so a person's true odds are usually BETTER than
+// raid, many won't be present - so a person's true odds are usually BETTER than
 // shown (fewer competitors), and someone with 0 points can still SR and win on a
 // pure roll. Treat these as "worst-case, if the whole field shows up".
 
 // Exact win probability per contender. Ties (equal totals) are treated as a
 // loss for simplicity; in-game they're rerolled, and they're rare enough not to
-// matter for typical point spreads. O(n^2 * 100) — fine for raid-sized fields.
+// matter for typical point spreads. O(n^2 * 100) - fine for raid-sized fields.
 export function winChances(points) {
   const n = points.length;
   if (n === 0) return [];

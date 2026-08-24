@@ -1,5 +1,5 @@
 // Data loading + derived selectors. The raw shape comes from the SQLite
-// database, read in the browser — see src/lib/loadDb.js + src/lib/shapeData.js.
+// database, read in the browser - see src/lib/loadDb.js + src/lib/shapeData.js.
 
 export const RAID_ORDER = ["MC", "BWL", "AQ40", "Naxx"];
 
@@ -213,7 +213,7 @@ function computeLuck(itemMeta, winsByItem, clears) {
   };
 }
 
-// "Hall of fame" — fun, defensible awards from the data we have. Luck here is
+// "Hall of fame" - fun, defensible awards from the data we have. Luck here is
 // roll-luck (wins vs how much you soft-reserve), which needs no drop rates.
 function computeSuperlatives(players, contested) {
   const withSR = players.filter((p) => p.srCount >= 15); // enough SRs to be fair

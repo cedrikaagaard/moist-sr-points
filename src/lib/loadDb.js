@@ -30,7 +30,7 @@ async function fetchDb(url) {
 
 // We ask the GitHub API for the last commit that touched the database file. It
 // gives us two things: the commit DATE (shown as "database updated …"), and the
-// commit HASH — which we pin the CDN request to, so a push shows up right away
+// commit HASH - which we pin the CDN request to, so a push shows up right away
 // instead of waiting out jsDelivr's ~12h branch cache. Best-effort and
 // unauthenticated (rate-limited); on any failure we fall back to the branch.
 function githubCommitsApi(jsdelivrUrl) {
@@ -69,7 +69,7 @@ async function resolveDb(remoteUrl) {
   try {
     return { source: "local", url: LOCAL_DB_URL, ...(await fetchDb(LOCAL_DB_URL)) };
   } catch {
-    // No usable local copy — fall through to the live remote database.
+    // No usable local copy - fall through to the live remote database.
   }
   try {
     return { source: "remote", url: remoteUrl, ...(await fetchDb(remoteUrl)) };

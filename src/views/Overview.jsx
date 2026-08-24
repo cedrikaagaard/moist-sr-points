@@ -21,7 +21,7 @@ export default function Overview({ data }) {
         </h1>
         <p className="hero-sub">
           Accumulative SR tracking across Molten Core, Blackwing Lair, AQ40 and Naxxramas.
-          Every soft-reserve earns points toward the roll — miss the drop, keep the points.
+          Every soft-reserve earns points toward the roll. Miss the drop, keep the points.
         </p>
       </section>
 
@@ -142,7 +142,7 @@ function GuildLuck({ luck }) {
             <strong>Add drop rates to unlock this.</strong>
           </p>
           <p className="muted">
-            Fill in <code>src/data/dropRates.js</code> — every tracked item is already listed, you
+            Fill in <code>src/data/dropRates.js</code>. Every tracked item is already listed; you
             just add each item's drop chance. As you do, this panel shows whether the guild has been
             lucky or unlucky with drops (actual vs. expected). {luck?.coverage.total} items are ready
             to fill in.
@@ -192,7 +192,7 @@ function GuildLuck({ luck }) {
           <div className={`luck-index luck-${tone}`}>{pct}%</div>
           <div className="luck-text">
             The guild has seen <strong>{o.actual}</strong> of ~
-            <strong>{Math.round(o.expected)}</strong> expected drops — <strong>{verdict}</strong>.
+            <strong>{Math.round(o.expected)}</strong> expected drops, <strong>{verdict}</strong>.
           </div>
         </div>
       </section>
@@ -274,7 +274,7 @@ function Sparkline({ data, peak }) {
 }
 
 function monthsBetween(a, b) {
-  if (!a || !b) return "—";
+  if (!a || !b) return "?";
   const d1 = new Date(a);
   const d2 = new Date(b);
   return Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24 * 30)));

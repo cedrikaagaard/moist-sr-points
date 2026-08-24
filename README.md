@@ -1,13 +1,13 @@
-# Moist — SR Points
+# Moist - SR Points
 
 A modern, WoW-flavoured website for the guild's accumulative soft-reserve (SR)
-points system. It reads the guild's SQLite database **live, in the browser** —
+points system. It reads the guild's SQLite database **live, in the browser** -
 so once the site is hosted, **there's no build or deploy to update it.** When the
 database changes, the site follows.
 
 No backend, no database server, no paid services.
 
-![The Points page — every tracked item, searchable across all raids](docs/home.png)
+![The Points page - every tracked item, searchable across all raids](docs/home.png)
 
 ---
 
@@ -20,32 +20,32 @@ The site loads the database straight from **Yulefuel's `moistdb` repo** over
 Yule updates moistdb.sqlite  ─push→  github.com/yulefuel-moist/moistdb
                                              │  (served via jsDelivr CDN)
                                              ▼
-                       the live site reads it in the browser — no rebuild
+                       the live site reads it in the browser - no rebuild
 ```
 
-So **updating the data is just Yule's normal workflow** — update the database,
+So **updating the data is just Yule's normal workflow** - update the database,
 push it to that repo. Nothing else. The site picks it up automatically.
 
 **Freshness (near real-time):** the app asks the GitHub API for the latest commit
 to the database, then loads the CDN copy *pinned to that exact commit*
 (`…moistdb@<commit>/…`). A pinned commit is served immediately, so a push shows up
-within a minute — no waiting on jsDelivr's ~12h branch cache, and nothing for Yule
+within a minute - no waiting on jsDelivr's ~12h branch cache, and nothing for Yule
 to set up. If the GitHub API is unavailable (e.g. rate-limited), it falls back to
 the plain branch URL (and you can force that with the jsDelivr purge URL:
 `https://purge.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite`).
 
-Pointing at a different database is a one-line change — see
+Pointing at a different database is a one-line change - see
 [Configuration](#configuration).
 
 ---
 
 ## Hosting the site (one-time, by whoever owns it)
 
-Because the data loads at runtime, you only ever build/deploy the app itself —
+Because the data loads at runtime, you only ever build/deploy the app itself -
 and only when the *code* changes, which is rare. Two ways:
 
 - **Netlify (recommended):** connect this repo (New site → import from Git).
-  `netlify.toml` is already set up. Done — it's live, and it keeps itself updated
+  `netlify.toml` is already set up. Done - it's live, and it keeps itself updated
   from the database with no further action.
 - **Anything static:** run `npm run build` once and host the `dist/` folder
   (Netlify drag-and-drop at <https://app.netlify.com/drop>, GitHub Pages, your
@@ -83,12 +83,12 @@ Whichever database it ends up using is printed in the browser console
 Where the app reads the database from is decided in **`src/config.js`** /
 `src/lib/loadDb.js`, in this order:
 
-1. **Override** — `?db=<url>` in the page URL, or a `VITE_DB_URL` set at build
+1. **Override** - `?db=<url>` in the page URL, or a `VITE_DB_URL` set at build
    time. Handy for testing: `yoursite.com/?db=https://.../other.sqlite`.
-2. **Local file** — a `moistdb.sqlite` served next to the app (this is what
+2. **Local file** - a `moistdb.sqlite` served next to the app (this is what
    `npm run dev` uses, and you can drop one next to a hosted copy to override the
    remote). Skipped if it isn't a real SQLite file.
-3. **Remote (default)** — Yulefuel's repo via jsDelivr.
+3. **Remote (default)** - Yulefuel's repo via jsDelivr.
 
 To change the default source permanently, edit `REMOTE_DB_URL` in
 `src/config.js`. Any database works as long as it has the same shape (the
@@ -101,7 +101,7 @@ To change the default source permanently, edit `REMOTE_DB_URL` in
 
 The **Guild luck** panel on the Statistics page compares how often items have
 actually dropped against how often they *should* have, given how many times each
-raid has been cleared. That needs a drop rate per item — and those aren't in the
+raid has been cleared. That needs a drop rate per item - and those aren't in the
 database (and there's no reliable free source to pull them automatically), so
 they live in **`src/data/dropRates.js`**, which you fill in.
 
@@ -115,7 +115,7 @@ they live in **`src/data/dropRates.js`**, which you fill in.
 
 ---
 
-## Troubleshooting — if something isn't working
+## Troubleshooting - if something isn't working
 
 These are the common snags and their fixes.
 
@@ -141,7 +141,7 @@ opens in <https://beta.sqliteviewer.app> and re-upload it to the source repo.
 
 **Item icons / hover tooltips don't show**
 Those come from Wowhead's script (needs internet, can be blocked by ad blockers).
-Cosmetic only — everything else still works.
+Cosmetic only - everything else still works.
 
 **`node` / `npm` not recognized** (only relevant for local dev / building)
 Install [Node.js](https://nodejs.org) (LTS), then **close and reopen** the
@@ -157,19 +157,19 @@ Still stuck? Copy the error from the F12 console and send it to **Cedrik/Drikkle
 
 ## How it works (under the hood)
 
-- The app loads **[sql.js](https://sql.js.org)** — SQLite compiled to
-  WebAssembly — and runs the database directly in the browser. The `.wasm` is
+- The app loads **[sql.js](https://sql.js.org)** - SQLite compiled to
+  WebAssembly - and runs the database directly in the browser. The `.wasm` is
   bundled with the app (not fetched from a third party); only the database file
   comes over the network.
 - It reads the database's **own views**, so all the SR-points rules live in one
   place (the database), never duplicated in code:
-  - `v_SRPoints` — current standings (already excludes rewarded items, inactive
+  - `v_SRPoints` - current standings (already excludes rewarded items, inactive
     characters, and SRs placed before an item existed).
-  - `SRData` / `v_SRData` — the full soft-reserve history.
+  - `SRData` / `v_SRData` - the full soft-reserve history.
 - The query + shaping logic is `src/lib/shapeData.js`; the browser loader is
   `src/lib/loadDb.js`.
 - The footer shows how current the data is: the latest raid date in the database,
-  plus — when reachable — how long ago the database file was last committed (via
+  plus - when reachable - how long ago the database file was last committed (via
   the GitHub API; it degrades gracefully if that's blocked or rate-limited).
 - Nice coincidence in the schema: `Items.item_id` is the **Wowhead item id**, so
   every item links to Wowhead with live icons + tooltips, for free.
@@ -195,25 +195,25 @@ netlify.toml          hosting config for the app itself
 
 ## The site's pages
 
-- **My Page** — pick your character once (no login — saved on the device) and get
-  a personal page: your points, your SR history, and **Best bets** — your chance
+- **My Page** - pick your character once (no login - saved on the device) and get
+  a personal page: your points, your SR history, and **Best bets** - your chance
   to win the roll on each item you have points on. Your rows are highlighted
   across the whole site, and the header shows who you are. Handles brand-new
   raiders with no points yet. *(Win-odds assume everyone with points contests the
-  item, so they're a worst-case — see the note on that panel.)*
-- **Points** (the home page) — every tracked item, grouped and ranked with
+  item, so they're a worst-case - see the note on that panel.)*
+- **Points** (the home page) - every tracked item, grouped and ranked with
   point bars. Defaults to **all raids** and is searchable, so a raider can just
   type their name to see their items; the raid buttons (All / MC / BWL / AQ40 /
   Naxx) filter down. Items link to Wowhead. Each SR is worth 10 points, except
   Naxxramas where it's 5.
-- **Raiders** — searchable directory; each raider has a profile with points by
+- **Raiders** - searchable directory; each raider has a profile with points by
   item and their full personal SR history (a quick "just show me my stuff").
-- **SR History** — the complete log, sortable by any column (including raider
+- **SR History** - the complete log, sortable by any column (including raider
   name) and filterable by raider/item and raid.
-- **Statistics** — the fun overview: guild stats, SRs by raid, weekly activity,
-  most-contested items, point leaders, a **Hall of Fame** (superlatives — loot
+- **Statistics** - the fun overview: guild stats, SRs by raid, weekly activity,
+  most-contested items, point leaders, a **Hall of Fame** (superlatives - loot
   goblin, luckiest/unluckiest by wins-per-SR, biggest stockpile, etc.), a
-  **Recent loot** feed of who won what, and **Guild luck** (drops vs. expected —
+  **Recent loot** feed of who won what, and **Guild luck** (drops vs. expected -
   see below).
 
 ---
@@ -241,7 +241,7 @@ It respects `prefers-reduced-motion`.
 
 ## Customising the look
 
-No CSS framework, no chart library — just plain CSS and hand-rolled SVG. Theme
+No CSS framework, no chart library - just plain CSS and hand-rolled SVG. Theme
 colours (the WoW gold, frost blue, per-raid colours, dark surfaces) are all CSS
 variables at the very top of `src/index.css`. Change them there and the whole
 site follows.

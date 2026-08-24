@@ -2,7 +2,7 @@
 // This is pure logic: pass in a `query(sql) -> rows[]` function and it works
 // anywhere. The app runs it in the browser (sql.js WASM); it could equally run
 // in Node. All the SR-points rules live in the database's own views
-// (v_SRPoints / v_SRData), so we just read them — nothing is reimplemented here.
+// (v_SRPoints / v_SRData), so we just read them - nothing is reimplemented here.
 //
 // Handy fact about the schema: Items.item_id IS the Wowhead item id, so item
 // links and icons work straight from the data.
@@ -53,7 +53,7 @@ export function shapeData(query) {
     ORDER BY pg.raid_date DESC, rd.raid_id, c.character_name
   `);
 
-  // Items actually awarded (won) — powers the loot feed, superlatives, and luck.
+  // Items actually awarded (won) - powers the loot feed, superlatives, and luck.
   const wins = query(`
     SELECT i.item_name AS item, i.item_id AS itemId, c.character_name AS character,
            r.date_rewarded AS date, rd.short_name AS raid
@@ -64,7 +64,7 @@ export function shapeData(query) {
     ORDER BY r.date_rewarded DESC
   `);
 
-  // Number of raid nights per raid (one SR page per raid per date) — the
+  // Number of raid nights per raid (one SR page per raid per date) - the
   // denominator for "expected drops" in the luck calc.
   const clearsRows = query(`
     SELECT rd.short_name AS raid, COUNT(*) AS clears

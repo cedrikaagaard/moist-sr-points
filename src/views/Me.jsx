@@ -17,7 +17,7 @@ export default function Me({ data }) {
           </h1>
           <p className="hero-sub">
             Pick your character to see your points, your best bets, and get your rows highlighted
-            across the site. No login — it's just saved on this device.
+            across the site. No login, it's just saved on this device.
           </p>
           <div className="me-hero-pick">
             <IdentityPicker
@@ -42,7 +42,7 @@ export default function Me({ data }) {
             No points or soft-reserves recorded for <strong>{me}</strong> yet.
           </p>
           <p className="muted">
-            Once you SR items in a raid, they'll show up here — with your points and your odds of
+            Once you SR items in a raid, they'll show up here, with your points and your odds of
             winning each roll. Points build up 10 per SR (5 in Naxxramas) and carry over until you
             win the item.
           </p>

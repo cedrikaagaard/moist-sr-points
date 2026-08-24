@@ -3,7 +3,7 @@
 // Resolution order (see src/lib/loadDb.js):
 //   1. ?db=<url> in the page URL, or a VITE_DB_URL set at build time  (override)
 //   2. a local moistdb.sqlite served next to the app                  (if present)
-//   3. the live remote copy — Yulefuel's moistdb repo via jsDelivr    (default)
+//   3. the live remote copy - Yulefuel's moistdb repo via jsDelivr    (default)
 //
 // So dropping a moistdb.sqlite next to the app (or `npm run dev`, which copies
 // one into public/) lets you test against a specific database; otherwise the
