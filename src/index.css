@@ -545,6 +545,20 @@ body.leeroy-shake { animation: leeroy-quake 0.4s cubic-bezier(0.36,0.07,0.19,0.9
 .decorated-badges { display: inline-flex; align-items: center; gap: 2px; font-variant-numeric: tabular-nums; }
 .decorated-dot { font-size: 15px; filter: saturate(1.1); }
 
+/* Locked achievements with progress */
+.ach-next { margin-top: 16px; border-top: 1px solid var(--border-soft); padding-top: 14px; }
+.ach-next-head { text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.ach-prog { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+.ach-prog .ach-emoji { opacity: 0.55; }
+.ach-prog-body { flex: 1; min-width: 0; }
+.ach-prog-top { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 4px; font-size: 13.5px; }
+.ach-prog-top .ach-name { font-weight: 600; }
+.ach-prog-track { height: 7px; background: var(--surface-3); border-radius: 4px; overflow: hidden; }
+.ach-prog-fill { height: 100%; border-radius: 4px; background: var(--common-q); }
+.ach-fill-rare { background: var(--rare); }
+.ach-fill-epic { background: var(--epic); }
+.ach-fill-legendary { background: var(--legendary); }
+
 /* ---------- Hall of fame (superlatives) ---------- */
 .hof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .hof-card {

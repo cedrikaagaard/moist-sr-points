@@ -12,7 +12,7 @@ export const RAID_META = {
 
 import { loadFromDb } from "./lib/loadDb.js";
 import { DROP_RATES } from "./data/dropRates.js";
-import { achievementsFor } from "./lib/achievements.js";
+import { evaluateAchievements } from "./lib/achievements.js";
 
 // A cheap fingerprint of a dataset, to skip pointless re-renders when the
 // background refresh returns the same data we already showed.
@@ -128,7 +128,9 @@ function buildIndex(raw) {
       raidsWithPoints: new Set(p.points.map((x) => x.raid)).size,
       winRate: p.srCount ? p.wins / p.srCount : 0,
     };
-    p.achievements = achievementsFor(p, d);
+    const { earned, locked } = evaluateAchievements(p, d);
+    p.achievements = earned;
+    p.nextAchievements = locked.slice(0, 4); // closest to earning
   }
 
   // Most decorated raiders (by achievement count) for the Statistics page.

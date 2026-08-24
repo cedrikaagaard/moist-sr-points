@@ -219,7 +219,8 @@ netlify.toml          hosting config for the app itself
   and **Guild luck** (drops vs. expected - see below).
 - **Achievements** - WoW-flavoured badges (rarity-coloured like item quality)
   earned from a raider's data: dedication, points banked, items won, luck, rank,
-  and breadth. Shown on every profile and My Page; defined in
+  and breadth. Every profile and My Page shows the earned badges plus a "Next up"
+  list with progress bars toward the closest unearned ones. Defined in
   `src/lib/achievements.js` (easy to add more).
 
 ---

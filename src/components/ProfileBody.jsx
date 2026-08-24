@@ -46,23 +46,49 @@ export default function ProfileBody({ data, player }) {
         <StatTile label="Achievements" value={player.achievements?.length ?? 0} />
       </div>
 
-      {player.achievements?.length > 0 && (
+      {(player.achievements?.length > 0 || player.nextAchievements?.length > 0) && (
         <section className="panel">
           <div className="panel-head">
             <h2>Achievements</h2>
             <span className="muted">{player.achievements.length} earned</span>
           </div>
-          <div className="ach-grid">
-            {player.achievements.map((a) => (
-              <div key={a.id} className={`ach ach-${a.rarity}`} title={a.desc}>
-                <span className="ach-emoji">{a.emoji}</span>
-                <div className="ach-text">
-                  <div className="ach-name">{a.name}</div>
-                  <div className="ach-desc muted small">{a.desc}</div>
+          {player.achievements.length > 0 && (
+            <div className="ach-grid">
+              {player.achievements.map((a) => (
+                <div key={a.id} className={`ach ach-${a.rarity}`} title={a.desc}>
+                  <span className="ach-emoji">{a.emoji}</span>
+                  <div className="ach-text">
+                    <div className="ach-name">{a.name}</div>
+                    <div className="ach-desc muted small">{a.desc}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          {player.nextAchievements?.length > 0 && (
+            <div className="ach-next">
+              <div className="ach-next-head muted small">Next up</div>
+              {player.nextAchievements.map((a) => (
+                <div key={a.id} className="ach-prog" title={a.desc}>
+                  <span className="ach-emoji">{a.emoji}</span>
+                  <div className="ach-prog-body">
+                    <div className="ach-prog-top">
+                      <span className={`ach-name ach-${a.rarity}`}>{a.name}</span>
+                      <span className="muted small">
+                        {Math.round(a.cur)} / {a.goal}
+                      </span>
+                    </div>
+                    <div className="ach-prog-track">
+                      <div
+                        className={`ach-prog-fill ach-fill-${a.rarity}`}
+                        style={{ width: `${Math.round(a.pct * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
