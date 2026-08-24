@@ -132,6 +132,40 @@ h1, h2 {
 .content { flex: 1; width: 100%; max-width: 1160px; margin: 0 auto; padding: 32px 24px 64px; }
 .view { display: flex; flex-direction: column; gap: 24px; }
 .loading, .empty { padding: 40px; text-align: center; color: var(--muted); }
+
+/* ---------- Loader ---------- */
+.loader { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 70px 20px; }
+.loader-logo {
+  width: 72px; height: 72px; border-radius: 50%; margin-bottom: 10px;
+  box-shadow: 0 0 0 1px var(--gold), 0 0 30px rgba(212, 175, 90, 0.35);
+  animation: loader-pulse 1.8s ease-in-out infinite;
+}
+.loader-title {
+  font-family: var(--font-display); font-size: 20px; letter-spacing: 0.03em;
+  color: var(--gold-bright); margin-bottom: 14px;
+}
+.loader-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.loader-step { display: flex; align-items: center; gap: 12px; font-size: 14.5px; color: var(--muted); transition: color 0.3s; }
+.loader-step.active { color: var(--text); }
+.loader-step.done { color: var(--text-2); }
+.loader-ico {
+  width: 20px; height: 20px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.loader-step.done .loader-ico { color: var(--gold); }
+.loader-spin {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--surface-3); border-top-color: var(--gold-bright);
+  animation: loader-spin 0.7s linear infinite;
+}
+@keyframes loader-spin { to { transform: rotate(360deg); } }
+@keyframes loader-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px var(--gold), 0 0 20px rgba(212, 175, 90, 0.25); }
+  50% { box-shadow: 0 0 0 1px var(--gold), 0 0 38px rgba(212, 175, 90, 0.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader-logo, .loader-spin { animation-duration: 0.001s; }
+}
 .empty { background: var(--surface-1); border: 1px dashed var(--border-soft); border-radius: var(--radius); }
 .error { color: var(--raid-bwl); border-color: var(--raid-bwl); }
 .muted { color: var(--muted); }

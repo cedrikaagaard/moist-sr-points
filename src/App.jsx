@@ -7,6 +7,7 @@ import Players from "./views/Players.jsx";
 import History from "./views/History.jsx";
 import Me from "./views/Me.jsx";
 import Leeroy from "./components/Leeroy.jsx";
+import Loader from "./components/Loader.jsx";
 import { useMe } from "./identity.js";
 
 const NAV = [
@@ -20,10 +21,15 @@ const NAV = [
 export default function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [step, setStep] = useState("engine");
   const { view, param } = useHashRoute();
 
   useEffect(() => {
-    loadData().then(setData).catch((e) => setError(e.message));
+    // onFresh swaps in the newest data if the background check finds a newer
+    // version after the fast cached copy has already rendered.
+    loadData({ onProgress: setStep, onFresh: setData })
+      .then(setData)
+      .catch((e) => setError(e.message));
   }, []);
 
   // Scroll to top on route change.
@@ -59,7 +65,7 @@ export default function App() {
 
       <main className="content">
         {error && <div className="empty error">Couldn’t load data: {error}</div>}
-        {!data && !error && <div className="loading">Summoning data…</div>}
+        {!data && !error && <Loader step={step} />}
         {data && view === "me" && <Me data={data} />}
         {data && view === "stats" && <Overview data={data} />}
         {data && view === "points" && <Points data={data} raid={param} />}

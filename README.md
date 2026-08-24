@@ -26,12 +26,13 @@ Yule updates moistdb.sqlite  ─push→  github.com/yulefuel-moist/moistdb
 So **updating the data is just Yule's normal workflow** - update the database,
 push it to that repo. Nothing else. The site picks it up automatically.
 
-**Freshness (near real-time):** the app asks the GitHub API for the latest commit
-to the database, then loads the CDN copy *pinned to that exact commit*
-(`…moistdb@<commit>/…`). A pinned commit is served immediately, so a push shows up
-within a minute - no waiting on jsDelivr's ~12h branch cache, and nothing for Yule
-to set up. If the GitHub API is unavailable (e.g. rate-limited), it falls back to
-the plain branch URL (and you can force that with the jsDelivr purge URL:
+**Freshness (near real-time, and fast):** the app shows the fast, browser/CDN
+-cached copy immediately, then in the background asks the GitHub API for the
+latest commit, fetches that exact version (`…moistdb@<commit>/…`), and swaps it in
+if it's newer. So the first paint is quick (and instant on repeat visits from the
+browser cache), while a push still shows up within a minute - and Yule sets up
+nothing. If the GitHub check is unavailable (e.g. rate-limited), you simply keep
+the cached copy (and can force a refresh with the jsDelivr purge URL:
 `https://purge.jsdelivr.net/gh/yulefuel-moist/moistdb@main/moistdb.sqlite`).
 
 Pointing at a different database is a one-line change - see

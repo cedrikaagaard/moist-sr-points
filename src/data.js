@@ -13,10 +13,26 @@ export const RAID_META = {
 import { loadFromDb } from "./lib/loadDb.js";
 import { DROP_RATES } from "./data/dropRates.js";
 
-export async function loadData() {
+// A cheap fingerprint of a dataset, to skip pointless re-renders when the
+// background refresh returns the same data we already showed.
+const sigOf = (raw) => `${raw?.dataThrough}|${raw?.srHistory?.length}|${raw?.wins?.length}`;
+
+export async function loadData({ onProgress, onFresh } = {}) {
   // Reads the SQLite database live, in the browser (sql.js). The source is
-  // chosen in src/lib/loadDb.js (override → local file → remote).
-  const raw = await loadFromDb();
+  // chosen in src/lib/loadDb.js (override → local file → remote). For the remote
+  // source it shows a cached copy immediately, then calls onFresh with the
+  // latest version if a newer one exists.
+  let initialSig = null;
+  const handleFresh =
+    onFresh &&
+    ((freshRaw) => {
+      if (sigOf(freshRaw) === initialSig) return; // unchanged; nothing to do
+      onFresh(buildIndex(freshRaw));
+    });
+
+  const raw = await loadFromDb({ onProgress, onFresh: handleFresh });
+  initialSig = sigOf(raw);
+  onProgress?.("crunch");
   return buildIndex(raw);
 }
 

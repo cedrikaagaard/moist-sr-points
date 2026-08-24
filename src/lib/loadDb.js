@@ -17,14 +17,15 @@ function getSql() {
 // index.html (a 200 of HTML) isn't mistaken for a real local database.
 const SQLITE_HEADER = "SQLite format 3";
 
-async function fetchDb(url) {
-  const res = await fetch(url, { cache: "no-store" });
+async function fetchDb(url, { noStore = false } = {}) {
+  // By default we let the browser's HTTP cache serve the file (jsDelivr sends a
+  // long cache-control), so repeat visits are instant. `noStore` is for the
+  // local/override sources where you want the freshest bytes while testing.
+  const res = await fetch(url, noStore ? { cache: "no-store" } : {});
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const buffer = await res.arrayBuffer();
   const head = new TextDecoder().decode(new Uint8Array(buffer, 0, SQLITE_HEADER.length));
   if (head !== SQLITE_HEADER) throw new Error("not a SQLite database");
-  // When the database was last changed (from the CDN / server response), used to
-  // show how recent the data is.
   return { buffer, lastModified: res.headers.get("last-modified") };
 }
 
@@ -59,46 +60,7 @@ function pinToCommit(jsdelivrUrl, sha) {
   return jsdelivrUrl.replace(/(@)[^/]+(\/)/, `$1${sha}$2`);
 }
 
-// Pick the database source: explicit override → local file (if present) →
-// remote. `remoteUrl` is the (commit-pinned) URL for the remote source, with a
-// fall back to the plain branch URL if that specific commit can't be fetched.
-async function resolveDb(remoteUrl) {
-  if (DB_OVERRIDE) {
-    return { source: "override", url: DB_OVERRIDE, ...(await fetchDb(DB_OVERRIDE)) };
-  }
-  try {
-    return { source: "local", url: LOCAL_DB_URL, ...(await fetchDb(LOCAL_DB_URL)) };
-  } catch {
-    // No usable local copy - fall through to the live remote database.
-  }
-  try {
-    return { source: "remote", url: remoteUrl, ...(await fetchDb(remoteUrl)) };
-  } catch {
-    if (remoteUrl !== REMOTE_DB_URL) {
-      return { source: "remote", url: REMOTE_DB_URL, ...(await fetchDb(REMOTE_DB_URL)) };
-    }
-    throw new Error("couldn't fetch the remote database");
-  }
-}
-
-// Errors here are shown to the user, so keep the messages plain and useful.
-export async function loadFromDb() {
-  // Look up the latest commit (for freshness + the "updated" time) in parallel
-  // with spinning up the WASM engine, so it doesn't add latency.
-  const [SQL, commit] = await Promise.all([getSql(), fetchLatestCommit(REMOTE_DB_URL)]);
-  const remoteUrl = commit?.sha ? pinToCommit(REMOTE_DB_URL, commit.sha) : REMOTE_DB_URL;
-
-  let picked;
-  try {
-    picked = await resolveDb(remoteUrl);
-  } catch (err) {
-    throw new Error(
-      `Couldn't load the database (${err.message}). ` +
-        `Check your connection and the source URL in src/config.js.`
-    );
-  }
-
-  const { source, url, buffer, lastModified } = picked;
+function logSource(source, url) {
   console.info(
     `%c[Moist]%c database source: %c${source}%c → ${url}`,
     "color:#d4af5a;font-weight:bold",
@@ -106,27 +68,24 @@ export async function loadFromDb() {
     "color:#7cc0f5;font-weight:bold",
     "color:inherit"
   );
+}
 
+// Open a database buffer and shape it. Throws friendly, user-facing errors.
+function openAndShape(SQL, { source, url, buffer, dbUpdated }) {
   let db;
   try {
     db = new SQL.Database(new Uint8Array(buffer));
   } catch {
     throw new Error("The database file couldn't be read (corrupted or wrong file).");
   }
-
   const query = (sql) => {
     const res = db.exec(sql);
     if (!res.length) return [];
     const { columns, values } = res[0];
     return values.map((row) => Object.fromEntries(columns.map((c, i) => [c, row[i]])));
   };
-
-  // Prefer the git commit date (remote); fall back to a Last-Modified header
-  // (e.g. the local dev server), else nothing.
-  const dbUpdated = (source === "remote" ? commit?.date : null) || lastModified || null;
-
   try {
-    return { ...shapeData(query), source, sourceUrl: url, dbUpdated };
+    return { ...shapeData(query), source, sourceUrl: url, dbUpdated: dbUpdated || null };
   } catch (err) {
     if (/no such (table|view|column)/i.test(err.message)) {
       throw new Error(
@@ -138,4 +97,69 @@ export async function loadFromDb() {
   } finally {
     db.close();
   }
+}
+
+// Background: find the newest commit, fetch that exact version, and hand the
+// fresh data back. Runs after first paint so it never slows the initial load.
+async function revalidate(SQL, onFresh) {
+  const commit = await fetchLatestCommit(REMOTE_DB_URL);
+  if (!commit?.sha) return; // can't check right now; keep what we showed
+  const url = pinToCommit(REMOTE_DB_URL, commit.sha);
+  let buffer;
+  try {
+    ({ buffer } = await fetchDb(url)); // pinned commit is immutable → cacheable
+  } catch {
+    return; // fall back to the copy already shown
+  }
+  const fresh = openAndShape(SQL, { source: "remote", url, buffer, dbUpdated: commit.date });
+  console.info(
+    `%c[Moist]%c refreshed to latest commit ${commit.sha.slice(0, 7)}`,
+    "color:#d4af5a;font-weight:bold",
+    "color:inherit"
+  );
+  onFresh(fresh);
+}
+
+// Load strategy:
+//   • override / local file → use directly (for testing), no revalidate.
+//   • remote → show the fast, browser/CDN-cached copy immediately, then check
+//     for a newer commit in the background and swap it in via onFresh.
+// onProgress(step) drives the loading animation: "engine" → "download".
+export async function loadFromDb({ onProgress, onFresh } = {}) {
+  onProgress?.("engine");
+  const SQL = await getSql();
+
+  onProgress?.("download");
+  if (DB_OVERRIDE) {
+    const { buffer, lastModified } = await fetchDb(DB_OVERRIDE, { noStore: true });
+    logSource("override", DB_OVERRIDE);
+    return openAndShape(SQL, { source: "override", url: DB_OVERRIDE, buffer, dbUpdated: lastModified });
+  }
+  try {
+    const { buffer, lastModified } = await fetchDb(LOCAL_DB_URL, { noStore: true });
+    logSource("local", LOCAL_DB_URL);
+    return openAndShape(SQL, { source: "local", url: LOCAL_DB_URL, buffer, dbUpdated: lastModified });
+  } catch {
+    // No usable local copy - fall through to the live remote database.
+  }
+
+  let fast;
+  try {
+    fast = await fetchDb(REMOTE_DB_URL);
+  } catch (err) {
+    throw new Error(
+      `Couldn't load the database (${err.message}). ` +
+        `Check your connection and the source URL in src/config.js.`
+    );
+  }
+  logSource("remote", REMOTE_DB_URL);
+  const initial = openAndShape(SQL, {
+    source: "remote",
+    url: REMOTE_DB_URL,
+    buffer: fast.buffer,
+    dbUpdated: fast.lastModified,
+  });
+
+  if (onFresh) revalidate(SQL, onFresh).catch(() => {});
+  return initial;
 }
