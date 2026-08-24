@@ -102,6 +102,30 @@ export default function Overview({ data }) {
         </section>
       </div>
 
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Most decorated</h2>
+          <span className="muted">most achievements earned</span>
+        </div>
+        <ol className="ranked-list">
+          {data.mostDecorated.map((p, i) => (
+            <li key={p.name} className={isMe(p.name) ? "me" : ""}>
+              <Rank n={i + 1} />
+              <PlayerLink name={p.name} className="item-name" />
+              {isMe(p.name) && <span className="you-tag">you</span>}
+              <span className="ranked-metric decorated-badges">
+                {p.achievements.slice(0, 6).map((a) => (
+                  <span key={a.id} className={`decorated-dot ach-${a.rarity}`} title={a.name}>
+                    {a.emoji}
+                  </span>
+                ))}
+                <span className="muted"> {p.achievements.length}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <HallOfFame superlatives={data.superlatives} isMe={isMe} />
 
       <GuildLuck luck={data.luck} />

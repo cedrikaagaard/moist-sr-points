@@ -12,6 +12,7 @@ export const RAID_META = {
 
 import { loadFromDb } from "./lib/loadDb.js";
 import { DROP_RATES } from "./data/dropRates.js";
+import { achievementsFor } from "./lib/achievements.js";
 
 // A cheap fingerprint of a dataset, to skip pointless re-renders when the
 // background refresh returns the same data we already showed.
@@ -106,6 +107,36 @@ function buildIndex(raw) {
   }));
   playerList.sort((a, b) => b.totalPoints - a.totalPoints);
 
+  // Context for achievements: leaderboard rank, and how many items each player
+  // leads (is #1 in points on).
+  const rankByName = new Map(playerList.map((p, i) => [p.name, i + 1]));
+  const itemsLedByName = new Map();
+  for (const raid of RAID_ORDER) {
+    for (const it of pointsByRaid[raid] || []) {
+      const leader = it.entries[0]?.character;
+      if (leader) itemsLedByName.set(leader, (itemsLedByName.get(leader) || 0) + 1);
+    }
+  }
+  for (const p of playerList) {
+    const perItem = new Map();
+    for (const h of p.history) perItem.set(h.item, (perItem.get(h.item) || 0) + h.quantity);
+    const d = {
+      rank: rankByName.get(p.name),
+      itemsLed: itemsLedByName.get(p.name) || 0,
+      itemsWithPoints: p.points.length,
+      maxItemSRs: perItem.size ? Math.max(...perItem.values()) : 0,
+      raidsWithPoints: new Set(p.points.map((x) => x.raid)).size,
+      winRate: p.srCount ? p.wins / p.srCount : 0,
+    };
+    p.achievements = achievementsFor(p, d);
+  }
+
+  // Most decorated raiders (by achievement count) for the Statistics page.
+  const mostDecorated = [...playerList]
+    .filter((p) => p.achievements.length)
+    .sort((a, b) => b.achievements.length - a.achievements.length)
+    .slice(0, 8);
+
   // SRs per raid.
   const srByRaid = Object.fromEntries(RAID_ORDER.map((r) => [r, 0]));
   for (const h of srHistory) srByRaid[h.raid] += h.quantity;
@@ -158,6 +189,7 @@ function buildIndex(raw) {
     source,
     lootFeed,
     superlatives,
+    mostDecorated,
     winsByItem,
     clears,
     luck,

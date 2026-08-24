@@ -208,14 +208,19 @@ netlify.toml          hosting config for the app itself
   Naxx) filter down. Items link to Wowhead. Each SR is worth 10 points, except
   Naxxramas where it's 5.
 - **Raiders** - searchable directory; each raider has a profile with points by
-  item and their full personal SR history (a quick "just show me my stuff").
+  item, their full personal SR history, and their **achievements** (a quick
+  "just show me my stuff").
 - **SR History** - the complete log, sortable by any column (including raider
   name) and filterable by raider/item and raid.
 - **Statistics** - the fun overview: guild stats, SRs by raid, weekly activity,
   most-contested items, point leaders, a **Hall of Fame** (superlatives - loot
   goblin, luckiest/unluckiest by wins-per-SR, biggest stockpile, etc.), a
-  **Recent loot** feed of who won what, and **Guild luck** (drops vs. expected -
-  see below).
+  **Recent loot** feed of who won what, **Most decorated** (achievement counts),
+  and **Guild luck** (drops vs. expected - see below).
+- **Achievements** - WoW-flavoured badges (rarity-coloured like item quality)
+  earned from a raider's data: dedication, points banked, items won, luck, rank,
+  and breadth. Shown on every profile and My Page; defined in
+  `src/lib/achievements.js` (easy to add more).
 
 ---
 

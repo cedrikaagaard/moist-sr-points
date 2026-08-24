@@ -43,8 +43,28 @@ export default function ProfileBody({ data, player }) {
         <StatTile label="Total points" value={player.totalPoints.toLocaleString()} accent="var(--gold)" />
         <StatTile label="Items won" value={player.wins ?? 0} />
         <StatTile label="Soft-reserves" value={player.srCount} />
-        <StatTile label="Items with points" value={player.points.length} />
+        <StatTile label="Achievements" value={player.achievements?.length ?? 0} />
       </div>
+
+      {player.achievements?.length > 0 && (
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Achievements</h2>
+            <span className="muted">{player.achievements.length} earned</span>
+          </div>
+          <div className="ach-grid">
+            {player.achievements.map((a) => (
+              <div key={a.id} className={`ach ach-${a.rarity}`} title={a.desc}>
+                <span className="ach-emoji">{a.emoji}</span>
+                <div className="ach-text">
+                  <div className="ach-name">{a.name}</div>
+                  <div className="ach-desc muted small">{a.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {topBets.length > 0 && (
         <section className="panel">
