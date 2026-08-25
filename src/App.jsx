@@ -6,6 +6,7 @@ import Points from "./views/Points.jsx";
 import Players from "./views/Players.jsx";
 import History from "./views/History.jsx";
 import Me from "./views/Me.jsx";
+import Item from "./views/Item.jsx";
 import Leeroy from "./components/Leeroy.jsx";
 import Loader from "./components/Loader.jsx";
 import { useMe } from "./identity.js";
@@ -71,6 +72,7 @@ export default function App() {
         {data && view === "points" && <Points data={data} raid={param} />}
         {data && view === "players" && <Players data={data} name={param} />}
         {data && view === "history" && <History data={data} />}
+        {data && view === "item" && <Item data={data} id={param} />}
       </main>
 
       {data && (

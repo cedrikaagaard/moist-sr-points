@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { RAID_META, wowheadUrl } from "../data.js";
-import { href } from "../router.js";
+import { href, navigate } from "../router.js";
 
 // The Wowhead tooltip script decorates links with icons/tooltips, but for
 // dynamically rendered links you have to call refreshLinks(). That scans the
@@ -20,23 +20,32 @@ function scheduleWowheadRefresh() {
 }
 
 // A Wowhead item link (icon + hover tooltip via the global tooltips.js script).
-export function WowheadLink({ id, name, className }) {
+// The href is the real Wowhead URL (so the icon, tooltip and quality colour all
+// work), but a normal left click goes to our internal item page instead;
+// ctrl/cmd/middle click still opens Wowhead in a new tab. Pass `external` to
+// always open Wowhead (used on the item page itself).
+export function WowheadLink({ id, name, className, external }) {
   useEffect(() => {
     if (id) scheduleWowheadRefresh();
   }, [id]);
 
   if (!id) return <span className={className}>{name}</span>;
-  return (
-    <a
-      className={className}
-      href={wowheadUrl(id)}
-      target="_blank"
-      rel="noreferrer"
-      data-wowhead={`item=${id}&domain=classic`}
-    >
-      {name}
-    </a>
-  );
+
+  const common = {
+    className,
+    href: wowheadUrl(id),
+    "data-wowhead": `item=${id}&domain=classic`,
+  };
+  if (external) {
+    return <a {...common} target="_blank" rel="noreferrer">{name}</a>;
+  }
+  const onClick = (e) => {
+    // Let modified / non-left clicks fall through to Wowhead.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    navigate("item", id);
+  };
+  return <a {...common} onClick={onClick}>{name}</a>;
 }
 
 export function RaidBadge({ raid, size = "md", onClick, active }) {

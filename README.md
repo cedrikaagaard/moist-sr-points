@@ -202,6 +202,10 @@ netlify.toml          hosting config for the app itself
   across the whole site, and the header shows who you are. Handles brand-new
   raiders with no points yet. *(Win-odds assume everyone with points contests the
   item, so they're a worst-case - see the note on that panel.)*
+- **Item pages** - clicking any item anywhere opens its own page: full standings
+  with each raider's win-odds, past winners (with dates), and contention/drop
+  stats, plus a "View on Wowhead" link and a jump to the raid's points.
+  Ctrl/Cmd/middle-click an item to open Wowhead directly instead.
 - **Points** (the home page) - every tracked item, grouped and ranked with
   point bars. Defaults to **all raids** and is searchable, so a raider can just
   type their name to see their items; the raid buttons (All / MC / BWL / AQ40 /

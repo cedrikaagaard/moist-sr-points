@@ -184,6 +184,22 @@ function buildIndex(raw) {
   }
   const luck = computeLuck(itemMeta, winsByItem, clears);
 
+  // Every item that appears anywhere (points, history, or wins), keyed by id,
+  // so the item page can resolve any linked item.
+  const itemsById = new Map();
+  for (const raid of RAID_ORDER) {
+    for (const it of pointsByRaid[raid] || [])
+      itemsById.set(it.itemId, { itemId: it.itemId, item: it.item, raid, entries: it.entries });
+  }
+  for (const h of srHistory) {
+    if (!itemsById.has(h.itemId))
+      itemsById.set(h.itemId, { itemId: h.itemId, item: h.item, raid: h.raid, entries: [] });
+  }
+  for (const w of wins) {
+    if (!itemsById.has(w.itemId))
+      itemsById.set(w.itemId, { itemId: w.itemId, item: w.item, raid: w.raid, entries: [] });
+  }
+
   return {
     updated,
     dataThrough,
@@ -193,6 +209,8 @@ function buildIndex(raw) {
     superlatives,
     mostDecorated,
     winsByItem,
+    wins,
+    itemsById,
     clears,
     luck,
     pointsByRaid,
