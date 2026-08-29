@@ -7,9 +7,11 @@ import Players from "./views/Players.jsx";
 import History from "./views/History.jsx";
 import Me from "./views/Me.jsx";
 import Item from "./views/Item.jsx";
+import Changelog from "./views/Changelog.jsx";
 import Leeroy from "./components/Leeroy.jsx";
 import Loader from "./components/Loader.jsx";
 import { useMe } from "./identity.js";
+import { VERSION, REPO_URL } from "./changelog.js";
 
 const NAV = [
   { view: "me", label: "My Page" },
@@ -65,8 +67,9 @@ export default function App() {
       </header>
 
       <main className="content">
-        {error && <div className="empty error">Couldn’t load data: {error}</div>}
-        {!data && !error && <Loader step={step} />}
+        {view === "changelog" && <Changelog />}
+        {error && view !== "changelog" && <div className="empty error">Couldn’t load data: {error}</div>}
+        {!data && !error && view !== "changelog" && <Loader step={step} />}
         {data && view === "me" && <Me data={data} />}
         {data && view === "stats" && <Overview data={data} />}
         {data && view === "points" && <Points data={data} raid={param} />}
@@ -75,29 +78,36 @@ export default function App() {
         {data && view === "item" && <Item data={data} id={param} />}
       </main>
 
-      {data && (
-        <footer className="footer">
-          <span>
-            {data.dataThrough ? (
-              <>Data current through <strong>{data.dataThrough}</strong></>
-            ) : (
-              `Loaded ${data.updated}`
-            )}
-            {data.dbUpdated && (
-              <>
-                {" · database updated "}
-                <span title={new Date(data.dbUpdated).toLocaleString()}>
-                  {timeAgo(data.dbUpdated)}
-                </span>
-              </>
-            )}
-            {data.source && data.source !== "remote" && (
-              <span className="source-tag"> · {data.source} db</span>
-            )}
-          </span>
-          <span className="muted">live from the guild database</span>
-        </footer>
-      )}
+      <footer className="footer">
+        <span>
+          {data ? (
+            <>
+              {data.dataThrough ? (
+                <>Data current through <strong>{data.dataThrough}</strong></>
+              ) : (
+                `Loaded ${data.updated}`
+              )}
+              {data.dbUpdated && (
+                <>
+                  {" · database updated "}
+                  <span title={new Date(data.dbUpdated).toLocaleString()}>
+                    {timeAgo(data.dbUpdated)}
+                  </span>
+                </>
+              )}
+              {data.source && data.source !== "remote" && (
+                <span className="source-tag"> · {data.source} db</span>
+              )}
+            </>
+          ) : (
+            <span className="muted">live from the guild database</span>
+          )}
+        </span>
+        <span className="footer-links">
+          <a href={href("changelog")} className="footer-link">v{VERSION}</a>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="footer-link">GitHub ↗</a>
+        </span>
+      </footer>
     </div>
   );
 }

@@ -100,11 +100,20 @@ To change the default source permanently, edit `REMOTE_DB_URL` in
 
 ## Drop rates & "Guild luck"
 
-The **Guild luck** panel on the Statistics page compares how often items have
-actually dropped against how often they *should* have, given how many times each
-raid has been cleared. That needs a drop rate per item - and those aren't in the
-database (and there's no reliable free source to pull them automatically), so
-they live in **`src/data/dropRates.js`**, which you fill in.
+**Guild drop rate (on every item page).** Each item page shows a *guild-observed*
+drop rate worked out purely from our own data: how many times the item has been
+awarded divided by how many times we've cleared its raid (capped at 100%). No
+external data needed - it's computed automatically. It's a rough guild-only
+estimate, not a true drop chance, so the page says as much and links to Wowhead
+so you can compare against the community numbers yourself. (A bigger external
+drop-rate dataset could refine this later.)
+
+The **Guild luck** panel on the Statistics page is a different thing: it compares
+how often items have actually dropped against how often they *should* have, given
+how many times each raid has been cleared. That needs a *real* drop rate per item
+- and those aren't in the database (and there's no reliable free source to pull
+them automatically), so they live in **`src/data/dropRates.js`**, which you fill
+in.
 
 - Every tracked item is already listed there; you just replace each `null` with
   the item's drop chance as a decimal (15% → `0.15`), read off Wowhead's
@@ -203,9 +212,10 @@ netlify.toml          hosting config for the app itself
   raiders with no points yet. *(Win-odds assume everyone with points contests the
   item, so they're a worst-case - see the note on that panel.)*
 - **Item pages** - clicking any item anywhere opens its own page: full standings
-  with each raider's win-odds, past winners (with dates), and contention/drop
-  stats, plus a "View on Wowhead" link and a jump to the raid's points.
-  Ctrl/Cmd/middle-click an item to open Wowhead directly instead.
+  with each raider's win-odds, past winners (with dates), a **guild drop rate**
+  worked out from our own loot (see below), plus a "View on Wowhead" link and a
+  jump to the raid's points. Ctrl/Cmd/middle-click an item to open Wowhead
+  directly instead.
 - **Points** (the home page) - every tracked item, grouped and ranked with
   point bars. Defaults to **all raids** and is searchable, so a raider can just
   type their name to see their items; the raid buttons (All / MC / BWL / AQ40 /
@@ -226,6 +236,11 @@ netlify.toml          hosting config for the app itself
   and breadth. Every profile and My Page shows the earned badges plus a "Next up"
   list with progress bars toward the closest unearned ones. Defined in
   `src/lib/achievements.js` (easy to add more).
+- **Changelog** - a plain what's-new page (linked from the footer, next to the
+  version number and a GitHub link). Edit **`src/changelog.js`**: add a new entry
+  at the top of the `CHANGELOG` array with a `version`, `date`, and a list of
+  `changes`. The footer's version number is taken from the newest entry
+  automatically, so that one file is the only place you touch.
 
 ---
 

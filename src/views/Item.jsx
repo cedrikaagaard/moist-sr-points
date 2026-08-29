@@ -32,6 +32,12 @@ export default function Item({ data, id }) {
   const clears = data.clears[item.raid] || 0;
   const expected = rate != null ? clears * rate : null;
 
+  // Guild-observed drop rate: how often this item has actually been awarded,
+  // relative to how many times we've cleared its raid. A rough, guild-only
+  // estimate raiders can eyeball against Wowhead's community numbers. Capped at
+  // 100% since a few items drop more than once per clear.
+  const guildRate = clears > 0 ? Math.min(1, winners.length / clears) : null;
+
   return (
     <div className="view">
       <button className="back-btn" onClick={() => navigate("points", item.raid)}>
@@ -65,11 +71,35 @@ export default function Item({ data, id }) {
         <StatTile label="Total soft-reserves" value={srCount} />
         <StatTile label="Times won" value={winners.length} />
         <StatTile
-          label="Drop rate"
-          value={rate != null ? `${Math.round(rate * 100)}%` : "?"}
-          sub={rate != null ? `~${expected.toFixed(1)} expected in ${clears} clears` : "add in dropRates.js"}
+          label="Guild drop rate"
+          value={guildRate != null ? `${Math.round(guildRate * 100)}%` : "—"}
+          sub={
+            guildRate != null
+              ? `${winners.length} in ${clears} clears`
+              : "no clears logged yet"
+          }
+          accent="var(--frost-bright)"
         />
       </div>
+
+      {guildRate != null && (
+        <p className="drop-note muted small">
+          <strong>Guild drop rate</strong> is how often this item has been awarded across our{" "}
+          {clears} {meta.name} clear{clears === 1 ? "" : "s"} ({winners.length} time
+          {winners.length === 1 ? "" : "s"}) — a rough, guild-only estimate, not a true drop chance.
+          Compare it with the community rate on{" "}
+          <a href={wowheadUrl(itemId)} target="_blank" rel="noreferrer" className="drop-note-link">
+            Wowhead ↗
+          </a>
+          {rate != null && (
+            <>
+              , which we peg at <strong>{Math.round(rate * 100)}%</strong> (~{expected.toFixed(1)}{" "}
+              expected)
+            </>
+          )}
+          .
+        </p>
+      )}
 
       <div className="grid-2">
         <section className="panel">

@@ -365,6 +365,10 @@ h1, h2 {
 .ext-link.ghost { background: var(--surface-2); border-color: var(--border-soft); color: var(--text-2); }
 .ext-link.ghost:hover { color: var(--text); border-color: var(--border); }
 .item-odds { min-width: 46px; text-align: right; font-size: 13px; font-weight: 700; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.drop-note { margin: -6px 0 0; line-height: 1.55; max-width: 760px; }
+.drop-note strong { color: var(--text-2); }
+.drop-note-link { color: var(--frost); font-weight: 600; }
+.drop-note-link:hover { color: var(--frost-bright); text-decoration: underline; }
 
 /* ---------- Filter bar / chips ---------- */
 .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -402,8 +406,32 @@ h1, h2 {
 .pager span { font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 
 /* ---------- Footer ---------- */
-.footer { border-top: 1px solid var(--border-soft); padding: 20px 24px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); flex-wrap: wrap; gap: 8px; }
+.footer { border-top: 1px solid var(--border-soft); padding: 20px 24px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); flex-wrap: wrap; gap: 8px 16px; }
 .source-tag { color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; font-weight: 600; }
+.footer-links { display: flex; align-items: center; gap: 14px; }
+.footer-link { color: var(--text-2); font-variant-numeric: tabular-nums; transition: color 0.15s; }
+.footer-link:hover { color: var(--gold-bright); }
+
+/* ---------- Changelog ---------- */
+.changelog { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+.changelog-entry {
+  display: grid; grid-template-columns: 140px 1fr; gap: 20px;
+  padding: 22px 0; border-bottom: 1px solid var(--border-soft);
+}
+.changelog-entry:last-child { border-bottom: none; }
+.changelog-marker { display: flex; flex-direction: column; gap: 4px; }
+.changelog-version {
+  font-family: var(--font-display); font-weight: 700; font-size: 18px;
+  color: var(--gold-bright); letter-spacing: 0.02em;
+}
+.changelog-date { font-size: 12px; color: var(--muted); }
+.changelog-changes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.changelog-changes li { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.changelog-changes li::marker { color: var(--gold-deep); }
+@media (max-width: 560px) {
+  .changelog-entry { grid-template-columns: 1fr; gap: 10px; padding: 18px 0; }
+  .changelog-marker { flex-direction: row; align-items: baseline; gap: 10px; }
+}
 
 /* ---------- Leeroy Jenkins easter egg ---------- */
 /* CHARGE: he sprints along a random bar / line of text. */
@@ -617,13 +645,18 @@ body.leeroy-shake { animation: leeroy-quake 0.4s cubic-bezier(0.36,0.07,0.19,0.9
   .grid-2 { grid-template-columns: 1fr; }
   .stat-row { grid-template-columns: repeat(2, 1fr); }
   .hof-grid { grid-template-columns: repeat(2, 1fr); }
-  .search.sm { width: 160px; }
-  .topbar { gap: 12px; flex-wrap: wrap; }
-  .nav { order: 3; width: 100%; overflow-x: auto; margin-right: 0; padding-bottom: 2px; }
-  .nav-link.active::after { bottom: -3px; }
-  .global-search { margin-left: auto; flex: 1; min-width: 0; max-width: 220px; }
+
+  /* Top bar reflows into tidy rows instead of one cramped line:
+     row 1 = brand + identity chip, row 2 = search, row 3 = nav. */
+  .topbar { flex-wrap: wrap; gap: 10px 12px; padding: 12px 16px; }
+  .brand { margin-right: auto; }
+  .me-chip { order: 1; }
+  .global-search { order: 2; width: 100%; max-width: none; margin: 0; }
   .global-search .search.sm { width: 100%; }
-  .search-drop { width: 100%; min-width: 200px; }
+  .search-drop { width: 100%; min-width: 0; }
+  .nav { order: 3; width: 100%; margin: 0; flex-wrap: wrap; gap: 2px 4px; }
+  .nav-link { white-space: nowrap; }
+  .nav-link.active::after { bottom: -3px; }
 }
 @media (max-width: 560px) {
   .content { padding: 20px 14px 48px; }
@@ -631,5 +664,20 @@ body.leeroy-shake { animation: leeroy-quake 0.4s cubic-bezier(0.36,0.07,0.19,0.9
   .stat-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .item-grid, .player-grid { grid-template-columns: 1fr; }
   .barchart-row { grid-template-columns: 88px 1fr auto; }
+  .view-head { gap: 12px; }
   .view-head .search { width: 100%; }
+
+  /* Stack panel titles above their subtitle so the muted note stops
+     crowding the heading on narrow screens. */
+  .panel { padding: 18px 16px; }
+  .panel-head { flex-direction: column; align-items: flex-start; gap: 3px; }
+
+  /* Give tables a little more room per column so more fits before scroll. */
+  .data-table thead th { padding: 10px 12px; }
+  .data-table td { padding: 9px 12px; }
+
+  /* Item / profile page heads: let action buttons drop below the title. */
+  .item-page-head { gap: 12px; }
+  .item-page-links { width: 100%; }
+  .ext-link { flex: 1; justify-content: center; }
 }
