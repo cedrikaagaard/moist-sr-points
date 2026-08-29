@@ -10,6 +10,7 @@ import Item from "./views/Item.jsx";
 import Changelog from "./views/Changelog.jsx";
 import Leeroy from "./components/Leeroy.jsx";
 import Loader from "./components/Loader.jsx";
+import { GitHubIcon } from "./components/common.jsx";
 import { useMe } from "./identity.js";
 import { VERSION, REPO_URL } from "./changelog.js";
 
@@ -79,7 +80,22 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <span>
+        {/* Links kept on the left: Netlify's injected badge sits in the
+            bottom-right corner and would otherwise cover them. */}
+        <span className="footer-links">
+          <a href={href("changelog")} className="footer-link">v{VERSION}</a>
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="footer-link footer-gh"
+            aria-label="View the source on GitHub"
+            title="GitHub"
+          >
+            <GitHubIcon size={16} />
+          </a>
+        </span>
+        <span className="footer-meta">
           {data ? (
             <>
               {data.dataThrough ? (
@@ -102,10 +118,6 @@ export default function App() {
           ) : (
             <span className="muted">live from the guild database</span>
           )}
-        </span>
-        <span className="footer-links">
-          <a href={href("changelog")} className="footer-link">v{VERSION}</a>
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="footer-link">GitHub ↗</a>
         </span>
       </footer>
     </div>

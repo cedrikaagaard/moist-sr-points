@@ -1,4 +1,5 @@
 import { CHANGELOG, VERSION, REPO_URL } from "../changelog.js";
+import { GitHubIcon } from "../components/common.jsx";
 
 export default function Changelog() {
   return (
@@ -12,7 +13,7 @@ export default function Changelog() {
         </div>
         <div className="item-page-links">
           <a className="ext-link" href={REPO_URL} target="_blank" rel="noreferrer">
-            GitHub ↗
+            <GitHubIcon size={15} /> GitHub
           </a>
         </div>
       </div>
